@@ -2,9 +2,7 @@ import cv2
 import os
 import argparse
 import math
-import alphashape
 import sacn
-import numpy as np
 from scipy.interpolate import LinearNDInterpolator
 from scipy.spatial import ConvexHull
 
@@ -25,14 +23,13 @@ class sACNSenderWrapper:
 
 def send_to_sacn(sender, p, t):
     if math.isnan(p) or math.isnan(t):
-        print("nan")
         return
     pan = int(p // 256)
     fpan = int(p % 256)
     tilt = int(t // 256)
     ftilt = int(t % 256)
     sender[UNIVERSE].dmx_data = (0,) * 28 + (pan, fpan, tilt, ftilt)
-    sender.flush([UNIVERSE])
+#    sender.flush([UNIVERSE])
     if not senderStarted["started"]:
         senderStarted["started"] = True
         sender.start()
@@ -45,7 +42,7 @@ def mouse_callback(event, x, y, *_):
     mouse["y"] = 1 - max(min(y / HEIGHT, 1), 0)
 
 def run(sender, cal_data):
-    cap = cv2.VideoCapture(vals.vcindex)
+    cap = cv2.VideoCapture(vals.vcindex, apiPreference = cv2.CAP_DSHOW)
     cv2.namedWindow("Camera")
     cv2.setMouseCallback("Camera", mouse_callback)
 
@@ -63,6 +60,7 @@ def run(sender, cal_data):
 
     pinterp = LinearNDInterpolator(points, ps)
     tinterp = LinearNDInterpolator(points, ts)
+    hull = ConvexHull(points)
 
     activeReading = True
     lastx = 0.5
@@ -82,19 +80,20 @@ def run(sender, cal_data):
             lasty = mouse["y"]
 
             send_to_sacn(sender, pinterp(mouse["x"], mouse["y"]), tinterp(mouse["x"], mouse["y"]))
+            frame = cv2.circle(frame, (int(lastx * WIDTH), int((1 - lasty) * HEIGHT)), radius = 10, color = (0, 255, 0), thickness=2)
+            frame = cv2.circle(frame, (int(lastx * WIDTH), int((1 - lasty) * HEIGHT)), radius = 2, color = (0, 255, 0), thickness=-1)
         else:
-            frame = cv2.circle(frame, (int(lastx * WIDTH), int((1 - lasty) * HEIGHT)), radius = 6, color = (0, 0, 255), thickness=-1)
+            frame = cv2.circle(frame, (int(lastx * WIDTH), int((1 - lasty) * HEIGHT)), radius = 8, color = (0, 0, 255), thickness=-1)
 
         if mouse["pressed"]:
             mouse["pressed"] = False
             activeReading = not activeReading
 
-        hull = ConvexHull(points)
         for i in range(len(hull.vertices)):
             p1 = points[hull.vertices[i]]
             p2 = points[hull.vertices[(i + 1) % len(hull.vertices)]]
 
-            frame = cv2.line(frame, (int(p1[0] * WIDTH), int((1 - p1[1]) * HEIGHT)), (int(p2[0] * WIDTH), int((1 - p2[1]) * HEIGHT)), color = (0, 255, 0), thickness = 3)
+            frame = cv2.line(frame, (int(p1[0] * WIDTH), int((1 - p1[1]) * HEIGHT)), (int(p2[0] * WIDTH), int((1 - p2[1]) * HEIGHT)), color = (0, 255, 0), thickness = 2)
 
         cv2.imshow('Camera', frame)
 
@@ -105,8 +104,8 @@ def run(sender, cal_data):
     cap.release()
     cv2.destroyAllWindows()
 
-def calibrate(sender):
-    cap = cv2.VideoCapture(vals.vcindex)
+def calibrate(sender, cal_data):
+    cap = cv2.VideoCapture(vals.vcindex, apiPreference = cv2.CAP_DSHOW)
     cv2.namedWindow("Camera")
     cv2.setMouseCallback("Camera", mouse_callback)
 
@@ -115,7 +114,6 @@ def calibrate(sender):
         return
 
     state = "pt"
-    cal_data = []
     print("Pan/Tilt mode")
 
     p, t = 0, 0
@@ -146,6 +144,20 @@ def calibrate(sender):
                 state = "pt"
                 require_confirm_quit = True
                 print("Saved calibration point. P/T mode")
+        elif state == "t":
+            mouse["pressed"] = False
+            points = []
+            ts = []
+            ps = []
+            for d in cal_data:
+                points.append((d[2], d[3]))
+                ps.append(d[0])
+                ts.append(d[1])
+
+            pinterp = LinearNDInterpolator(points, ps)
+            tinterp = LinearNDInterpolator(points, ts)
+            send_to_sacn(sender, pinterp(mouse["x"], mouse["y"]), tinterp(mouse["x"], mouse["y"]))
+
 
         for d in cal_data:
             frame = cv2.circle(frame, (int(d[2] * WIDTH), int((1 - d[3]) * HEIGHT)), color = (0, 0, 255), radius = 4, thickness=-1)
@@ -178,6 +190,33 @@ def calibrate(sender):
                 print("You have unsaved calibration data, to quit, press q again.")
             else:
                 break
+        if k & 0xFF == ord('r'):
+            cal_data = cal_data[:-1]
+            require_confirm_quit = True
+        if k & 0xFF == ord('c'):
+            cal_data = []
+            require_confirm_quit = True
+        if k & 0xFF == ord('x'):
+            smallestDist = 10000000
+            smallestIndex = -1
+            for i in range(len(cal_data)):
+                dist = ((mouse["x"] - cal_data[i][2])**2 + (mouse["y"] - cal_data[i][3])**2)**0.5
+                if dist < smallestDist:
+                    smallestDist = dist
+                    smallestIndex = i
+
+            if smallestIndex >= 0:
+                del cal_data[smallestIndex]
+            require_confirm_quit = True
+        if k & 0xFF == ord('t'):
+            if state == "pt":
+                state = "t"
+                print("Track mode")
+            elif state == "t":
+                state = "pt"
+                print("P/T mode")
+            elif state == "m":
+                print("Can only go into 'track'-mode when in P/T mode.")
 
     cap.release()
     cv2.destroyAllWindows()
@@ -191,16 +230,22 @@ parser.add_argument("-c", "--calibrate", dest = "calibrate", action = "store_tru
 vals = parser.parse_args()
 
 WIDTH = 1280
-HEIGHT = 960
+HEIGHT = 840
 UNIVERSE = 7
 
 with sACNSenderWrapper() as sender:
     sender.activate_output(UNIVERSE)
     sender[UNIVERSE].multicast = True
-    sender[UNIVERSE].fps = 30
+    sender[UNIVERSE].fps = 35
 
     if vals.calibrate:
-        calibrate(sender)
+        cal_data = []
+        if os.path.exists("cal.txt"):
+            with open("cal.txt", "r") as f:
+                for line in f:
+                    p, t, x, y = line.strip().split()
+                    cal_data.append([int(p), int(t), float(x), float(y)])
+        calibrate(sender, cal_data)
     else:
         cal_data = []
         if not os.path.exists("cal.txt"):

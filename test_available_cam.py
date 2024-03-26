@@ -1,24 +1,19 @@
 import cv2 
+import device
 
 def returnCameraIndexes():
-    index = 0
-    arr = []
-    i = 10
-    while i > 0:
-        cap = cv2.VideoCapture(index)
-        if cap.read()[0]:
-            arr.append(index)
-            cap.release()
-        index += 1
-        i -= 1
-    return arr
+    devices = {}
+    for i, d in enumerate(device.getDeviceList()):
+        devices[d[0]] = i
+
+    return devices
 
 def main():
     print(returnCameraIndexes())
 
     select_index = int(input("Select camera index: "))
 
-    cap = cv2.VideoCapture(select_index)
+    cap = cv2.VideoCapture(select_index, apiPreference=cv2.CAP_DSHOW)
     cv2.namedWindow("Webcam")
 
     if not cap.isOpened():
