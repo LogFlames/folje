@@ -26,9 +26,18 @@ The calibration happens in two steps. First the mouse controls absolute Pan/Tilt
 
 If the camera is more parallell to the stage, take a lighting doll and light their face, then click on where their feet are. Do not calibrate based on the center of the beam. It will be difficult when the person is standing 
 
+### Calibration file `cal.txt`
+The calibration file `cal.txt` contains 4 columns.
+* pan - 16-bit (2 channels - for fixtures with fine pan)
+* tilt - 16-bit (2 channels - for fixtures with fine tilt)
+* mouse x position - normalized between 0 and 1
+* mouse y position - normalized between 0 and 1 (and inverted)
+
 ## Running
 Run with `python cam.py -i [INDEX]`. It loads `cal.txt`.
 When the mouse is outside the calibration zone (outlined in green) it will not update the P/T information sent over sACN.
+
+If you click LMB the cursor indicator will be turned into a red dot and the P/T will be locked to that position. You can freely move the mouse without affecting the light. To gain back control, click LMB again.
 
 ## Config
 It currently sends pan, fine pan, tilt, fine tilt to channels 28-31 on universe 7. These must the changed in the code.
