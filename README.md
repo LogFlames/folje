@@ -14,11 +14,17 @@ Run the script with `python main.py -m r -i [INDEX]`
 Run with `python main.py -m c -i [INDEX]`. It loads `cal.txt` file if it exists.
 
 `c` - remove all calibration points
+
 `q` - quit (must be pressed twice if calibration points are unsaved)
+
 `r` - reset calibration of current point
+
 `s` - save calibration points to `cal.txt`
+
 `t` - enter and exit track mode (where you can preview the calibration so far)
+
 `u` - undo/remove the last added calibration point
+
 `x` - remove the calibration point closest to the mouse
 
 The calibration happens in two steps. First the mouse controls absolute Pan/Tilt based on 0-100% on the X and Y axis. When the light is in a desired position that has not been calibrated yet, press the LMB, the light will now freeze. Do this for each of the fixtures you have configured in `fixtures.toml`. Move the cursor to where the person is standing.
