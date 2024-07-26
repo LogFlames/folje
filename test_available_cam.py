@@ -1,10 +1,10 @@
 import cv2 
-import device
+import windows_capture_devices
 
 def returnCameraIndexes():
     devices = {}
-    for i, d in enumerate(device.getDeviceList()):
-        devices[d[0]] = i
+    for i, d in enumerate(windows_capture_devices.get_capture_devices()):
+        devices[d] = i
 
     return devices
 
