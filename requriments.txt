@@ -2,3 +2,4 @@ sacn==1.9.0
 opencv-python==4.9.0.80
 scipy==1.9.3
 windows-capture-device-list==1.1.0
+device==0.1
