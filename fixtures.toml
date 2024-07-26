@@ -1,0 +1,17 @@
+[[fixture]]
+name = "Left"
+universe = 7
+pan = 28
+fpan = 29
+tilt = 30
+ftilt = 31
+uid = "left-fixture"
+
+[[fixture]]
+name = "Right"
+universe = 7
+pan = 28
+fpan = 29
+tilt = 30
+ftilt = 31
+uid = "right-fixture"

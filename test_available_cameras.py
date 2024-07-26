@@ -8,7 +8,7 @@ def returnCameraIndexes():
 
     return devices
 
-def main():
+def query_and_open_available_cameras():
     print(returnCameraIndexes())
 
     select_index = int(input("Select camera index: "))
@@ -42,5 +42,4 @@ def main():
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    main()
-
+    query_and_open_available_cameras()
