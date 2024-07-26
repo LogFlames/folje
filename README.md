@@ -8,8 +8,6 @@ A python script to control a front profile as a follow light, it started by bein
 ## Find camera
 Print available cameras with `python main.py -m t` and try to show their stream. Press `q` to exit the window.
 
-Run the script with `python main.py -m r -i [INDEX]`
-
 ## Calibrate
 Run with `python main.py -m c -i [INDEX]`. It loads `cal.txt` file if it exists.
 
@@ -37,6 +35,7 @@ If the camera is more parallell to the stage, take a lighting doll and light the
 The calibration file `cal.txt` contains 2+3n columns separated by space.
 * mouse x position - normalized between 0 and 1
 * mouse y position - normalized between 0 and 1 (and inverted)
+
 Then for each fixture in `fixtures.toml`:
 * fixture uid - string with unique fixture name
 * pan - 16-bit (2 channels - for fixtures with fine pan)
