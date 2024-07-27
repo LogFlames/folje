@@ -33,9 +33,11 @@ class sACNSenderWrapper:
             self.dmx_prep[fixture.universe] = [0] * 512
 
         self.dmx_prep[fixture.universe][fixture.pan] = pan
-        self.dmx_prep[fixture.universe][fixture.fpan] = fpan
+        if fixture.fpan < 0:
+            self.dmx_prep[fixture.universe][fixture.fpan] = fpan
         self.dmx_prep[fixture.universe][fixture.tilt] = tilt
-        self.dmx_prep[fixture.universe][fixture.ftilt] = ftilt
+        if fixture.ftilt < 0:
+            self.dmx_prep[fixture.universe][fixture.ftilt] = ftilt
 
     def send_to_sacn(self):
         for universe in self.dmx_prep:
