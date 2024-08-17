@@ -1,17 +1,17 @@
 [[fixture]]
 name = "Left"
-universe = 7
-pan = 28
-fpan = 29
-tilt = 30
-ftilt = 31
+universe = 1
+pan = 178
+fpan = 179
+tilt = 180
+ftilt = 181
 uid = "left-fixture"
 
 [[fixture]]
 name = "Right"
-universe = 7
-pan = 28
-fpan = 29
-tilt = 30
-ftilt = 31
+universe = 1
+pan = 217
+fpan = 218
+tilt = 219
+ftilt = 220
 uid = "right-fixture"

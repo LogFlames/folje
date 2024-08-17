@@ -5,7 +5,7 @@ import cv2
 from scipy.spatial import ConvexHull
 from scipy.interpolate import LinearNDInterpolator
 
-from utils import CalibrationPoint, PanTilt, sACNSenderWrapper
+from utils import CalibrationPoint, PanTilt, sACNSenderWrapper, create_cap
 from fixture import load_fixtures, Fixture
 
 WIDTH = 1280
@@ -35,8 +35,7 @@ class Follower:
         if len(self.calibration) < 3:
             raise Exception("Too few calibration points to run. It requires atleast three to function.")
 
-        cap = cv2.VideoCapture(self.vcindex, apiPreference = cv2.CAP_DSHOW)
-        cv2.namedWindow("Camera")
+        cap = create_cap(self.vcindex)
         cv2.setMouseCallback("Camera", self.mouse_callback)
 
         if not cap.isOpened():
@@ -90,8 +89,8 @@ class Follower:
         cv2.destroyAllWindows()
 
     def start_calibrate(self):
-        cap = cv2.VideoCapture(self.vcindex, apiPreference = cv2.CAP_DSHOW)
-        cv2.namedWindow("Camera")
+        cap = create_cap(self.vcindex)
+
         cv2.setMouseCallback("Camera", self.mouse_callback)
 
         state = "pan/tilt-absolute" # pan/tilt-absolute, mouse, track

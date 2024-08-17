@@ -1,5 +1,6 @@
 import math
 import sacn
+import cv2
 from typing import Dict, List
 from dataclasses import dataclass
 from collections import namedtuple
@@ -32,12 +33,12 @@ class sACNSenderWrapper:
         if fixture.universe not in self.dmx_prep:
             self.dmx_prep[fixture.universe] = [0] * 512
 
-        self.dmx_prep[fixture.universe][fixture.pan] = pan
-        if fixture.fpan < 0:
-            self.dmx_prep[fixture.universe][fixture.fpan] = fpan
-        self.dmx_prep[fixture.universe][fixture.tilt] = tilt
-        if fixture.ftilt < 0:
-            self.dmx_prep[fixture.universe][fixture.ftilt] = ftilt
+        self.dmx_prep[fixture.universe][fixture.pan - 1] = pan
+        if fixture.fpan > 0:
+            self.dmx_prep[fixture.universe][fixture.fpan - 1] = fpan
+        self.dmx_prep[fixture.universe][fixture.tilt - 1] = tilt
+        if fixture.ftilt > 0:
+            self.dmx_prep[fixture.universe][fixture.ftilt - 1] = ftilt
 
     def send_to_sacn(self):
         for universe in self.dmx_prep:
@@ -60,3 +61,10 @@ class CalibrationPoint:
     x: float
     y: float
     pt: Dict[str, PanTilt]
+
+def create_cap(index):
+    cap = cv2.VideoCapture(index, apiPreference = cv2.CAP_DSHOW)
+    # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    cv2.namedWindow("Camera", cv2.WINDOW_KEEPRATIO)
+    return cap

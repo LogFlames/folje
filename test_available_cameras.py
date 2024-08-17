@@ -1,5 +1,6 @@
 import cv2 
 import windows_capture_devices
+from utils import create_cap
 
 def returnCameraIndexes():
     devices = {}
@@ -13,8 +14,7 @@ def query_and_open_available_cameras():
 
     select_index = int(input("Select camera index: "))
 
-    cap = cv2.VideoCapture(select_index, apiPreference=cv2.CAP_DSHOW)
-    cv2.namedWindow("Webcam")
+    cap = create_cap(select_index)
 
     if not cap.isOpened():
         print("Error: Could not open camera.")
