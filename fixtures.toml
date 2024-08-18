@@ -6,6 +6,10 @@ fpan = 179
 tilt = 180
 ftilt = 181
 uid = "left-fixture"
+min_pan = 0
+max_pan = 65535
+min_tilt = 0
+max_tilt = 65535
 
 [[fixture]]
 name = "Right"
@@ -15,3 +19,7 @@ fpan = 218
 tilt = 219
 ftilt = 220
 uid = "right-fixture"
+min_pan = 0
+max_pan = 65535
+min_tilt = 0
+max_tilt = 65535

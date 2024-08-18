@@ -11,6 +11,20 @@ from utils import CalibrationPoint, PanTilt, create_cap, sACNSenderWrapper
 WIDTH = 1920
 HEIGHT = 1080
 
+def partial_pan(percent, fixture: Fixture | None):
+    if fixture is None:
+        return int(percent * (2**16 - 1))
+
+    p = int(fixture.min_pan + (fixture.max_pan - fixture.min_pan) * percent)
+    return p
+
+def partial_tilt(percent, fixture: Fixture | None):
+    if fixture is None:
+        return int(percent * (2**16 - 1))
+
+    t = int(fixture.min_tilt + (fixture.max_tilt - fixture.min_tilt) * percent)
+    return t
+
 class Follower:
     def __init__(self, vcindex: int, sender: sACNSenderWrapper):
         self.vcindex = vcindex
@@ -114,12 +128,14 @@ class Follower:
             frame = cv2.resize(frame, (WIDTH, HEIGHT))
 
             if state == "pan/tilt-absolute":
-                p = int(self.mouse["x"] * (2**16-1))
-                t = int(self.mouse["y"] * (2**16-1))
+                p = partial_pan(self.mouse["x"], active_fixture)
+                t = partial_tilt(self.mouse["y"], active_fixture)
 
                 if active_fixture is not None:
                     if active_fixture.uid in last_unfinished_point:
-                        frame = cv2.circle(frame, (int((last_unfinished_point[active_fixture.uid].pan / 2**16) * WIDTH), int((1 - (last_unfinished_point[active_fixture.uid].tilt / 2**16)) * HEIGHT)), radius = 10, color = (0, 0, 0), thickness=2)
+                        pan_percent = (last_unfinished_point[active_fixture.uid].pan - active_fixture.min_pan) / (active_fixture.max_pan - active_fixture.min_pan)
+                        tilt_percent = (last_unfinished_point[active_fixture.uid].tilt - active_fixture.min_tilt) / (active_fixture.max_tilt - active_fixture.min_tilt)
+                        frame = cv2.circle(frame, (int(pan_percent * WIDTH), int((1 - tilt_percent) * HEIGHT)), radius = 10, color = (255, 0, 0), thickness=2)
 
                 if self.mouse["pressed"] and active_fixture is not None:
                     self.mouse["pressed"] = False

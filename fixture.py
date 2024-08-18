@@ -11,6 +11,10 @@ class Fixture:
     tilt: int
     ftilt: int
     uid: str
+    min_pan: int = 0
+    max_pan: int = 65535
+    min_tilt: int = 0
+    max_tilt: int = 65535
 
 def load_fixtures():
     if not os.path.exists("fixtures.toml"):
