@@ -8,8 +8,8 @@ from scipy.interpolate import LinearNDInterpolator
 from utils import CalibrationPoint, PanTilt, sACNSenderWrapper, create_cap
 from fixture import load_fixtures, Fixture
 
-WIDTH = 1280
-HEIGHT = 820
+WIDTH = 1920
+HEIGHT = 1080
 
 class Follower:
     def __init__(self, vcindex: int, sender: sACNSenderWrapper):
@@ -48,14 +48,25 @@ class Follower:
         lastx = 0.5
         lasty = 0.5
 
+        broke = False
+        last_working_frame = None
+
         while True:
             ret, frame = cap.read()
 
-            if not ret:
-                print("Error: Could not read frame.")
+            if ret:
+                last_working_frame = frame
+                if broke:
+                    print("Success: Read frame")
+                broke = False
+            elif not broke:
+                print("Error: Could not read frame. Showing last frame")
+
+            if last_working_frame is None:
+                print("No last working frame")
                 break
 
-            frame = cv2.resize(frame, (WIDTH, HEIGHT))
+            frame = cv2.resize(last_working_frame, (WIDTH, HEIGHT))
 
             if activeReading:
                 lastx = self.mouse["x"]
@@ -102,12 +113,23 @@ class Follower:
             print("Error: Could not open camera.")
             return
 
+        broke = False
+        last_working_frame = None
+
         require_confirm_quit = True
         while True:
             ret, frame = cap.read()
 
-            if not ret:
+            if ret:
+                last_working_frame = frame
+                if broke:
+                    print("Success: Frame read")
+                broke = False
+            elif not broke:
                 print("Error: Could not read frame.")
+
+            if last_working_frame is None:
+                print("Error: No last working frame")
                 break
 
             frame = cv2.resize(frame, (WIDTH, HEIGHT))
@@ -192,7 +214,10 @@ class Follower:
                 case 'c':
                     self.calibration = []
                     require_confirm_quit = True
-                    print("Cleared calibration data.")
+                    state = "pan/tilt-absolute" # pan/tilt-absolute, mouse, track
+                    unfinished_point = {}
+                    active_fixture = None
+                    print("Cleared calibration data. Moving to pan/tilt mode")
                 case 'q':
                     if require_confirm_quit:
                         require_confirm_quit = False

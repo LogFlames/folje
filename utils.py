@@ -4,6 +4,7 @@ import cv2
 from typing import Dict, List
 from dataclasses import dataclass
 from collections import namedtuple
+import windows_capture_devices
 
 from fixture import Fixture
 
@@ -62,9 +63,17 @@ class CalibrationPoint:
     y: float
     pt: Dict[str, PanTilt]
 
+def returnCameraIndexes():
+    devices = {}
+    for i, d in enumerate(windows_capture_devices.get_capture_devices()):
+        devices[d] = i
+
+    return devices
+
 def create_cap(index):
     cap = cv2.VideoCapture(index, apiPreference = cv2.CAP_DSHOW)
     # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
     # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
     cv2.namedWindow("Camera", cv2.WINDOW_KEEPRATIO)
     return cap
+
