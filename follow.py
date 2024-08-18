@@ -1,12 +1,12 @@
 import os
-from typing import List, Dict
+from typing import Dict, List
 
 import cv2
-from scipy.spatial import ConvexHull
 from scipy.interpolate import LinearNDInterpolator
+from scipy.spatial import ConvexHull
 
-from utils import CalibrationPoint, PanTilt, sACNSenderWrapper, create_cap
-from fixture import load_fixtures, Fixture
+from fixture import Fixture, load_fixtures
+from utils import CalibrationPoint, PanTilt, create_cap, sACNSenderWrapper
 
 WIDTH = 1920
 HEIGHT = 1080
@@ -48,25 +48,14 @@ class Follower:
         lastx = 0.5
         lasty = 0.5
 
-        broke = False
-        last_working_frame = None
-
         while True:
             ret, frame = cap.read()
 
-            if ret:
-                last_working_frame = frame
-                if broke:
-                    print("Success: Read frame")
-                broke = False
-            elif not broke:
-                print("Error: Could not read frame. Showing last frame")
-
-            if last_working_frame is None:
-                print("No last working frame")
+            if not ret:
+                print("Error: Could not read frame.")
                 break
 
-            frame = cv2.resize(last_working_frame, (WIDTH, HEIGHT))
+            frame = cv2.resize(frame, (WIDTH, HEIGHT))
 
             if activeReading:
                 lastx = self.mouse["x"]
@@ -107,29 +96,19 @@ class Follower:
         state = "pan/tilt-absolute" # pan/tilt-absolute, mouse, track
         active_fixture = None
 
+        last_unfinished_point: Dict[str, PanTilt] = {}
         unfinished_point: Dict[str, PanTilt] = {}
 
         if not cap.isOpened():
             print("Error: Could not open camera.")
             return
 
-        broke = False
-        last_working_frame = None
-
         require_confirm_quit = True
         while True:
             ret, frame = cap.read()
 
-            if ret:
-                last_working_frame = frame
-                if broke:
-                    print("Success: Frame read")
-                broke = False
-            elif not broke:
+            if not ret:
                 print("Error: Could not read frame.")
-
-            if last_working_frame is None:
-                print("Error: No last working frame")
                 break
 
             frame = cv2.resize(frame, (WIDTH, HEIGHT))
@@ -137,6 +116,10 @@ class Follower:
             if state == "pan/tilt-absolute":
                 p = int(self.mouse["x"] * (2**16-1))
                 t = int(self.mouse["y"] * (2**16-1))
+
+                if active_fixture is not None:
+                    if active_fixture.uid in last_unfinished_point:
+                        frame = cv2.circle(frame, (int((last_unfinished_point[active_fixture.uid].pan / 2**16) * WIDTH), int((1 - (last_unfinished_point[active_fixture.uid].tilt / 2**16)) * HEIGHT)), radius = 10, color = (0, 0, 0), thickness=2)
 
                 if self.mouse["pressed"] and active_fixture is not None:
                     self.mouse["pressed"] = False
@@ -160,7 +143,9 @@ class Follower:
                 if self.mouse["pressed"]:
                     self.mouse["pressed"] = False
                     self.calibration.append(CalibrationPoint(self.mouse["x"], self.mouse["y"], unfinished_point))
+                    last_unfinished_point = {key: value for key, value in unfinished_point.items()}
                     unfinished_point = {}
+                    
                     active_fixture = None
                     require_confirm_quit = True
                     state = "pan/tilt-absolute"
