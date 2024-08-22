@@ -18,7 +18,7 @@ def query_and_open_available_cameras():
         ret, frame = cap.read()
 
         if not ret:
-            print("Error: Could not read frame. Showing last frame")
+            print("Error: Could not read frame.")
             break
 
         cv2.imshow("Camera", frame)

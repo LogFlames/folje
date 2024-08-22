@@ -77,3 +77,16 @@ def create_cap(index):
     cv2.namedWindow("Camera", cv2.WINDOW_KEEPRATIO)
     return cap
 
+def partial_pan(percent, fixture: Fixture | None):
+    if fixture is None:
+        return int(percent * (2**16 - 1))
+
+    p = int(fixture.min_pan + (fixture.max_pan - fixture.min_pan) * percent)
+    return p
+
+def partial_tilt(percent, fixture: Fixture | None):
+    if fixture is None:
+        return int(percent * (2**16 - 1))
+
+    t = int(fixture.min_tilt + (fixture.max_tilt - fixture.min_tilt) * percent)
+    return t

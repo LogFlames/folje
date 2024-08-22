@@ -6,24 +6,10 @@ from scipy.interpolate import LinearNDInterpolator
 from scipy.spatial import ConvexHull
 
 from fixture import Fixture, load_fixtures
-from utils import CalibrationPoint, PanTilt, create_cap, sACNSenderWrapper
+from utils import CalibrationPoint, PanTilt, create_cap, sACNSenderWrapper, partial_pan, partial_tilt
 
 WIDTH = 1920
 HEIGHT = 1080
-
-def partial_pan(percent, fixture: Fixture | None):
-    if fixture is None:
-        return int(percent * (2**16 - 1))
-
-    p = int(fixture.min_pan + (fixture.max_pan - fixture.min_pan) * percent)
-    return p
-
-def partial_tilt(percent, fixture: Fixture | None):
-    if fixture is None:
-        return int(percent * (2**16 - 1))
-
-    t = int(fixture.min_tilt + (fixture.max_tilt - fixture.min_tilt) * percent)
-    return t
 
 class Follower:
     def __init__(self, vcindex: int, sender: sACNSenderWrapper):
@@ -70,6 +56,7 @@ class Follower:
                 break
 
             frame = cv2.resize(frame, (WIDTH, HEIGHT))
+            frame = cv2.rotate(frame, cv2.ROTATE_180)
 
             if activeReading:
                 lastx = self.mouse["x"]
@@ -93,11 +80,13 @@ class Follower:
 
                 frame = cv2.line(frame, (int(p1[0] * WIDTH), int((1 - p1[1]) * HEIGHT)), (int(p2[0] * WIDTH), int((1 - p2[1]) * HEIGHT)), color = (0, 255, 0), thickness = 2)
 
-            cv2.imshow('Camera', frame)
+            cv2.imshow("Camera", frame)
 
             k = cv2.waitKey(1)
             if k & 0xFF == ord('q'):
                 break
+
+            self.sender.send_to_sacn()
 
         cap.release()
         cv2.destroyAllWindows()
@@ -126,6 +115,7 @@ class Follower:
                 break
 
             frame = cv2.resize(frame, (WIDTH, HEIGHT))
+            frame = cv2.rotate(frame, cv2.ROTATE_180)
 
             if state == "pan/tilt-absolute":
                 p = partial_pan(self.mouse["x"], active_fixture)
