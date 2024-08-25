@@ -74,7 +74,9 @@ def create_cap(index):
     cap = cv2.VideoCapture(index, apiPreference = cv2.CAP_DSHOW)
     # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
     # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-    cv2.namedWindow("Camera", cv2.WINDOW_KEEPRATIO)
+    # cv2.namedWindow("Camera", cv2.WINDOW_KEEPRATIO)
+    cv2.namedWindow("Camera", cv2.WND_PROP_FULLSCREEN)
+    cv2.setWindowProperty("Camera", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     return cap
 
 def partial_pan(percent, fixture: Fixture | None):
