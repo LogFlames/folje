@@ -1,4 +1,4 @@
-# Följe
+# Följe (old python project)
 
 A python script to control a front profile as a follow light, it started by being made in 6h for Kårspexet 23/24 by Elias Lundell, but has since been rewritten and expanded for more shows.
 
