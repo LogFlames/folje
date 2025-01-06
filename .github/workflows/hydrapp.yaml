@@ -2,8 +2,8 @@ name: hydrapp CI
 
 on:
   push:
-  schedule:
-    - cron: "0 0 * * 0"
+    branches:
+      - main
 
 jobs:
   build-linux:
@@ -13,81 +13,38 @@ jobs:
     strategy:
       matrix:
         target:
-          # com.github.example.myapp
-          - id: hydrapp-apk.com.github.example.myapp
-            src: .
-            pkg: .
-            exclude: deb|dmg|flatpak|msi|rpm|binaries|tests
-            tag: latest
-            dst: out/*
-            runner: ubuntu-latest
-          - id: hydrapp-deb-amd64.com.github.example.myapp
+          - id: hydrapp-deb-amd64.com.github.logflames.folje
             src: .
             pkg: .
             exclude: deb/arm64|apk|dmg|flatpak|msi|rpm|binaries|tests
             tag: latest
             dst: out/*
             runner: ubuntu-latest
-          - id: hydrapp-deb-arm64.com.github.example.myapp
+          - id: hydrapp-deb-arm64.com.github.logflames.folje
             src: .
             pkg: .
             exclude: deb/amd64|apk|dmg|flatpak|msi|rpm|binaries|tests
             tag: latest
             dst: out/*
             runner: ubuntu-latest
-          - id: hydrapp-dmg.com.github.example.myapp
+          - id: hydrapp-dmg.com.github.logflames.folje
             src: .
             pkg: .
             exclude: apk|deb|flatpak|msi|rpm|binaries|tests
             tag: latest
             dst: out/*
             runner: ubuntu-latest
-          - id: hydrapp-flatpak-amd64.com.github.example.myapp
-            src: .
-            pkg: .
-            exclude: apk|deb|flatpak/arm64|dmg|msi|rpm|binaries|tests
-            tag: latest
-            dst: out/*
-            runner: ubuntu-latest
-          - id: hydrapp-flatpak-arm64.com.github.example.myapp
-            src: .
-            pkg: .
-            exclude: apk|deb|flatpak/amd64|dmg|msi|rpm|binaries|tests
-            tag: latest
-            dst: out/*
-            runner: ubuntu-latest
-          - id: hydrapp-msi.com.github.example.myapp
+          - id: hydrapp-msi.com.github.logflames.folje
             src: .
             pkg: .
             exclude: apk|deb|flatpak|dmg|rpm|binaries|tests
             tag: latest
             dst: out/*
             runner: ubuntu-latest
-          - id: hydrapp-rpm-amd64.com.github.example.myapp
-            src: .
-            pkg: .
-            exclude: apk|deb|flatpak|dmg|rpm/arm64|msi|binaries|tests
-            tag: latest
-            dst: out/*
-            runner: ubuntu-latest
-          - id: hydrapp-rpm-arm64.com.github.example.myapp
-            src: .
-            pkg: .
-            exclude: apk|deb|flatpak|dmg|rpm/amd64|msi|binaries|tests
-            tag: latest
-            dst: out/*
-            runner: ubuntu-latest
-          - id: hydrapp-binaries.com.github.example.myapp
+          - id: hydrapp-binaries.com.github.logflames.folje
             src: .
             pkg: .
             exclude: apk|deb|flatpak|dmg|msi|rpm|tests
-            tag: latest
-            dst: out/*
-            runner: ubuntu-latest
-          - id: hydrapp-tests.com.github.example.myapp
-            src: .
-            pkg: .
-            exclude: apk|deb|flatpak|dmg|msi|rpm|binaries
             tag: latest
             dst: out/*
             runner: ubuntu-latest

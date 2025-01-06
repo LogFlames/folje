@@ -39,12 +39,6 @@ msi:
   architecture: amd64
   include: ^\\b$
   packages: []
-rpm:
-- path: rpm/fedora/41/x86_64
-  trailer: fc41
-  distro: fedora-41
-  architecture: amd64
-  packages: []
 binaries:
   path: binaries
   exclude: (android/*|ios/*|plan9/*|aix/*|linux/loong64|freebsd/riscv64|wasip1/wasm|js/wasm|openbsd/mips64)
