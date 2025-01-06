@@ -1,4 +1,4 @@
-module github.com/LogFlames/folje
+module github.com/logflames/folje
 
 go 1.23.1
 

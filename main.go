@@ -12,8 +12,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/LogFlames/folje/pkg/backend"
-	"github.com/LogFlames/folje/pkg/frontend"
+	"github.com/logflames/folje/pkg/backend"
+	"github.com/logflames/folje/pkg/frontend"
 	"github.com/pojntfx/hydrapp/hydrapp/pkg/config"
 	_ "github.com/pojntfx/hydrapp/hydrapp/pkg/fixes"
 	"github.com/pojntfx/hydrapp/hydrapp/pkg/ui"

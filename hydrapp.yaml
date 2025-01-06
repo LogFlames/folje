@@ -1,12 +1,12 @@
 app:
-  id: com.github.LogFlames.folje
+  id: com.github.logflames.folje
   name: Folje
   summary: Follow light controller
   description: Control-software for using a moving fixture and webcam as a follow
     light.
   license: CC-BY-NC-ND-4.0
-  homepage: https://github.com/LogFlames/folje
-  git: https://github.com/LogFlames/folje.git
+  homepage: https://github.com/logflames/folje
+  git: https://github.com/logflames/folje.git
   baseurl: https://logflames.github.io/folje
 go:
   main: .
