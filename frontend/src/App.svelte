@@ -1,79 +1,85 @@
 <script lang="ts">
-  import logo from './assets/images/logo-universal.png'
-  import {Greet} from '../wailsjs/go/main/App.js'
+  import { onMount } from 'svelte';
+  import { writable, get } from 'svelte/store';
 
-  let resultText: string = "Please enter your name below 👇"
-  let name: string
+  let videoElement;
+  let videoSelect;
 
-  function greet(): void {
-    Greet(name).then(result => resultText = result)
+  let deviceInfos = writable<MediaDeviceInfo[]>([]);
+  let stream = writable<MediaStream>();
+
+  onMount(() => {
+    getStream().then(getDevices).then(gotDevices);
+  });
+
+  function getDevices() {
+    return navigator.mediaDevices.enumerateDevices();
+  }
+
+  function gotDevices(p_deviceInfos) {
+    deviceInfos.set(p_deviceInfos);
+  }
+
+  function getStream() {
+    if (get(stream)) {
+      get(stream).getTracks().forEach(track => {
+        track.stop();
+      });
+    }
+
+    const videoSource = videoSelect.value;
+    const constraints = {
+      video: {deviceId: videoSource ? {exact: videoSource} : undefined}
+    };
+
+    return navigator.mediaDevices.getUserMedia(constraints).
+      then(gotStream).catch(handleError);
+  }
+
+  function gotStream(p_stream) {
+    stream.set(p_stream);
+    videoSelect.selectedIndex = [...videoSelect.options].
+      findIndex(option => option.text === p_stream.getVideoTracks()[0].label);
+    videoElement.srcObject = p_stream;
+  }
+
+  function handleError(error) {
+    console.error('Error: ', error);
   }
 </script>
 
+<style>
+  main {
+    height: 100vh;
+  }
+
+  video {
+    width: 100%;
+    height: 100%;
+    background-color: rgb(2, 12, 24);
+    object-fit: contain;
+  }
+
+  .content {
+    height: calc(100% - 40px);
+  }
+
+  .footer {
+    height: 40px;
+  }
+</style>
+
 <main>
-  <img alt="Wails logo" id="logo" src="{logo}">
-  <div class="result" id="result">{resultText}</div>
-  <div class="input-box" id="input">
-    <input autocomplete="off" bind:value={name} class="input" id="name" type="text"/>
-    <button class="btn" on:click={greet}>Greet</button>
+  <div class="content">
+    <video autoplay bind:this={videoElement}></video>
+  </div>
+  <div class="footer">
+    <select bind:this={videoSelect} on:change={getStream}>
+      {#each $deviceInfos as deviceInfo, index}
+        {#if deviceInfo.kind === 'videoinput'}
+          <option value={deviceInfo.deviceId}>{deviceInfo.label || `Camera ${index + 1}`}</option>
+        {/if}
+      {/each}
+    </select>
   </div>
 </main>
-
-<style>
-
-  #logo {
-    display: block;
-    width: 50%;
-    height: 50%;
-    margin: auto;
-    padding: 10% 0 0;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    background-origin: content-box;
-  }
-
-  .result {
-    height: 20px;
-    line-height: 20px;
-    margin: 1.5rem auto;
-  }
-
-  .input-box .btn {
-    width: 60px;
-    height: 30px;
-    line-height: 30px;
-    border-radius: 3px;
-    border: none;
-    margin: 0 0 0 20px;
-    padding: 0 8px;
-    cursor: pointer;
-  }
-
-  .input-box .btn:hover {
-    background-image: linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%);
-    color: #333333;
-  }
-
-  .input-box .input {
-    border: none;
-    border-radius: 3px;
-    outline: none;
-    height: 30px;
-    line-height: 30px;
-    padding: 0 10px;
-    background-color: rgba(240, 240, 240, 1);
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .input-box .input:hover {
-    border: none;
-    background-color: rgba(255, 255, 255, 1);
-  }
-
-  .input-box .input:focus {
-    border: none;
-    background-color: rgba(255, 255, 255, 1);
-  }
-
-</style>
