@@ -1,0 +1,51 @@
+app:
+  id: com.github.LogFlames.folje
+  name: Folje
+  summary: Follow light controller
+  description: Control-software for using a moving fixture and webcam as a follow
+    light.
+  license: CC-BY-NC-ND-4.0
+  homepage: https://github.com/LogFlames/folje
+  git: https://github.com/LogFlames/folje.git
+  baseurl: https://logflames.github.io/folje
+go:
+  main: .
+  flags: ""
+  generate: go generate ./...
+  tests: go test ./...
+  img: ghcr.io/pojntfx/hydrapp-build-tests:main
+releases:
+- version: 0.0.1
+  date: 2025-01-06T01:16:01.617676+01:00
+  description: Initial release
+  author: Elias Lundell
+  email: elilun03@gmail.com
+deb:
+- path: deb/debian/sid/x86_64
+  os: debian
+  distro: sid
+  mirrorsite: http://http.us.debian.org/debian
+  components:
+  - main
+  - contrib
+  debootstrapopts: ""
+  architecture: amd64
+  packages: []
+dmg:
+  path: dmg
+  packages: []
+msi:
+- path: msi/x86_64
+  architecture: amd64
+  include: ^\\b$
+  packages: []
+rpm:
+- path: rpm/fedora/41/x86_64
+  trailer: fc41
+  distro: fedora-41
+  architecture: amd64
+  packages: []
+binaries:
+  path: binaries
+  exclude: (android/*|ios/*|plan9/*|aix/*|linux/loong64|freebsd/riscv64|wasip1/wasm|js/wasm|openbsd/mips64)
+  packages: []
