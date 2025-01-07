@@ -17,3 +17,41 @@ body {
     height: 100vh;
     text-align: center;
 }
+
+.hidden {
+    display: none !important;
+}
+
+button {
+    display: inline-block;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: hsl(219, 64%, 62%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: hsl(219, 45%, 36%);
+}
+
+button:active {
+    background-color: hsl(218, 54%, 19%);
+}
+
+select {
+    display: inline-block;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: hsl(219, 64%, 62%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
