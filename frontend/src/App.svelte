@@ -4,6 +4,7 @@
     import Fixtures from "./Fixtures.svelte";
     import type { Fixture, CalibrationPoint } from "./types";
     import { v4 as uuidv4 } from "uuid";
+    import { calcPan, calcTilt } from "./utils";
 
     interface MousePos {
         x: number;
@@ -191,12 +192,8 @@
         ) {
             fixtures.update((fixtures) => {
                 let fixture = fixtures[get(currentlyCalibrating).fixture_id];
-                let pan =
-                    fixture.minPan +
-                    get(mousePos).x * (fixture.maxPan - fixture.minPan);
-                let tilt =
-                    fixture.minTilt +
-                    get(mousePos).y * (fixture.maxTilt - fixture.minTilt);
+                let pan = calcPan(fixture, get(mousePos).x);
+                let tilt = calcTilt(fixture, get(mousePos).y);
 
                 fixture.calibration[
                     get(currentlyCalibrating).calibration_point_id
@@ -371,7 +368,10 @@
                             left: {calibrationPoint.x * 100}%;
                         "
                         on:click={(event) => {
-                            handleClickOnCalibrationPoint(event, calibrationPoint.id);
+                            handleClickOnCalibrationPoint(
+                                event,
+                                calibrationPoint.id,
+                            );
                         }}
                     ></div>
                 {/each}
@@ -486,6 +486,12 @@
                 point {$calibrationPoints[
                     $currentlyCalibrating.calibration_point_id
                 ].id}
+            </div>
+            <div>
+                Pan: {Math.floor(calcPan($fixtures[$currentlyCalibrating.fixture_id], $mousePos.x))}
+            </div>
+            <div>
+                Tilt: {Math.floor(calcTilt($fixtures[$currentlyCalibrating.fixture_id], $mousePos.y))}
             </div>
         {/if}
         {#if calibrateForOnePointSelectCalibrationPoint}

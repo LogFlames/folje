@@ -24,3 +24,8 @@ export interface CalibratedCalibrationPoint {
     pan: number;
     tilt: number;
 }
+
+export interface Point {
+    x: number;
+    y: number;
+}
