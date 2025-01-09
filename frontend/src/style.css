@@ -1,14 +1,37 @@
+:root {
+    /* Dark gray base */
+    --main-bg-color: #2c2c2c;
+    --secondary-bg-color: rgba(44, 44, 44, 0.8);
+    --main-bg-color-transparent: rgba(44, 44, 44, 0.3);
+    
+    /* Neutral buttons */
+    --main-button-color: #666666;
+    --main-button-hover-color: #808080;
+    --main-button-active-color: #4d4d4d;
+    
+    /* Light gray text */
+    --main-text-color: #e6e6e6;
+    
+    /* Status colors */
+    --main-red-color-transparent: rgba(255, 0, 0, 0.9);
+    --main-red-color: rgb(204, 71, 71);
+    --main-green-color-transparent: rgba(0, 255, 0, 0.9);
+    
+    /* Overlay */
+    --overlay: rgba(26, 26, 26, 0.75);
+}
+
 html {
-    background-color: rgb(2, 12, 24);
+    background-color: var(--main-bg-color);
     text-align: center;
-    color: white;
+    color: var(--main-text-color);
     height: 100%;
     overflow: hidden;
 }
 
 body {
     margin: 0;
-    color: white;
+    color: var(--main-text-color);
     font-family: "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
     min-height: 100%;
 }
@@ -27,8 +50,8 @@ button {
     padding: 12px 24px;
     font-size: 16px;
     font-weight: 600;
-    color: #ffffff;
-    background-color: hsl(219, 64%, 62%);
+    color: var(--main-text-color);
+    background-color: var(--main-button-color);
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -36,11 +59,11 @@ button {
 }
 
 button:hover {
-    background-color: hsl(219, 45%, 36%);
+    background-color: var(--main-button-hover-color);
 }
 
 button:active {
-    background-color: hsl(218, 54%, 19%);
+    background-color: var(--main-button-active-color);
 }
 
 select {
@@ -48,10 +71,18 @@ select {
     padding: 12px 24px;
     font-size: 16px;
     font-weight: 600;
-    color: #ffffff;
-    background-color: hsl(219, 64%, 62%);
+    color: var(--main-text-color);
+    background-color: var(--main-button-color);
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
+}
+
+ul {
+    margin: 0;
+}
+
+li {
+    width: 0;
 }

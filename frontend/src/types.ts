@@ -15,6 +15,7 @@ export interface Fixture {
 
 export interface CalibrationPoint {
     id: string;
+    name: string;
     x: number;
     y: number;
 }

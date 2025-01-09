@@ -18,14 +18,16 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "folje",
+		Title:  "Följe",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		BackgroundColour: &options.RGBA{R: 8, G: 18, B: 34, A: 1},
-		OnStartup:        app.startup,
+		BackgroundColour:         &options.RGBA{R: 8, G: 18, B: 34, A: 1},
+		OnStartup:                app.startup,
+		WindowStartState:         options.Maximised,
+		EnableDefaultContextMenu: false,
 		Bind: []interface{}{
 			app,
 		},

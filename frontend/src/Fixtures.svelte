@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type Writable, writable } from "svelte/store";
+    import { type Writable } from "svelte/store";
     import type { CalibrationPoint, Fixture } from "./types";
     import { v4 as uuidv4 } from "uuid";
     import { createEventDispatcher } from "svelte";
@@ -54,6 +54,13 @@
         <div class="side-by-side-left">
             <div class="fixture-list-scroll">
                 {#each Object.values($fixtures) as fixture, index (fixture.id)}
+                    {@const calibrated =
+                        Object.keys($calibrationPoints).filter(
+                            (calibration_point_id) =>
+                                !Object.keys(fixture.calibration).includes(
+                                    calibration_point_id,
+                                ),
+                        ).length == 0}
                     <button
                         class="fixture-button {fixture.id === selectedId
                             ? 'selected-fixture-button'
@@ -61,20 +68,14 @@
                         on:click={() => {
                             selectId(fixture.id);
                         }}
+                        title={calibrated ? "" : "Uncalibrated for atleast one point."}
                     >
                         Fixture {index + 1}: {fixture.name || "Unnamed"}
-                        <br />
-                        {Object.keys($calibrationPoints).filter(
-                            (calibration_point_id) =>
-                                !Object.keys(fixture.calibration).includes(
-                                    calibration_point_id,
-                                ),
-                        ).length > 0
-                            ? "<!> uncalibrated <!>"
-                            : ""}
+                        {calibrated ? "" : "<!>"}
                     </button>
                 {/each}
             </div>
+            <div class="fixture-list-separator"></div>
             <button on:click={addFixture}> Add Fixture </button>
         </div>
         {#if selectedId !== null && $fixtures[selectedId] !== undefined}
@@ -193,6 +194,7 @@
                             />
                         </label>
                     </div>
+                    <div class="fixture-list-separator"></div>
                     <button
                         class="fixture-settings-button"
                         on:click={() => {
@@ -225,7 +227,7 @@
 <style>
     .fixture-button {
         display: block;
-        padding: 10px;
+        padding: 8px;
         margin: 10px;
         width: 280px;
     }
@@ -235,7 +237,7 @@
     }
 
     .overlay-content {
-        background: #0f0a48;
+        background: var(--secondary-bg-color);
         padding: 20px;
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
@@ -265,14 +267,19 @@
     }
 
     .selected-fixture-button {
-        background-color: hsl(218, 56%, 25%);
+        background-color: var(--main-button-active-color);
     }
 
     .fixture-settings-button {
-        margin: 10px 0;
+        margin: 4px 0;
+        padding: 10px;
     }
 
     .remove-fixture-button {
-        background-color: red;
+        background-color: var(--main-red-color);
+    }
+
+    .fixture-list-separator {
+        margin-top: 25px;
     }
 </style>
