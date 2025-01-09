@@ -7,9 +7,7 @@ It started as a python-script written in 6h for Kårspexet 23/24 by Elias Lundel
 ## Todo in rewrite
 
 - Add sACN output
-- Allower finer control over pan/tilt (for example by holding space to allow relative control)
 - Add documentation and instructinos in readme
-- Add tooltips when in custom mode
 
 ## Build
 

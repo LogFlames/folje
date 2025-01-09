@@ -30,3 +30,8 @@ export interface Point {
     x: number;
     y: number;
 }
+
+export interface MousePos {
+    x: number;
+    y: number;
+}

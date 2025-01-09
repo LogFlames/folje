@@ -3,6 +3,7 @@
     --main-bg-color: #2c2c2c;
     --secondary-bg-color: rgba(44, 44, 44, 0.8);
     --main-bg-color-transparent: rgba(44, 44, 44, 0.3);
+    --main-notification-bg-color: rgba(101, 135, 204, 0.7);
     
     /* Neutral buttons */
     --main-button-color: #666666;
@@ -16,6 +17,7 @@
     --main-red-color-transparent: rgba(255, 0, 0, 0.9);
     --main-red-color: rgb(204, 71, 71);
     --main-green-color-transparent: rgba(0, 255, 0, 0.9);
+    --main-green-color: rgba(0, 255, 0);
     
     /* Overlay */
     --overlay: rgba(26, 26, 26, 0.75);
