@@ -3,6 +3,7 @@
     import type { CalibrationPoint, Fixture } from "./types";
     import { v4 as uuidv4 } from "uuid";
     import { createEventDispatcher } from "svelte";
+    import * as App from "../wailsjs/go/main/App";
 
     export let fixtures: Writable<{ [id: string]: Fixture }>;
     export let calibrationPoints: Writable<{ [id: string]: CalibrationPoint }>;
@@ -12,9 +13,18 @@
     let selectedId = null;
 
     function removeFixture(id) {
-        fixtures.update((fixtures) => {
-            delete fixtures[id];
-            return fixtures;
+        App.ConfirmDialog(
+            "Delete fixture",
+            `Are you sure you want to delete '${$fixtures[id].name}'`,
+        ).then((value) => {
+            if (value === "Cancel") {
+                return;
+            }
+
+            fixtures.update((fixtures) => {
+                delete fixtures[id];
+                return fixtures;
+            });
         });
     }
 
@@ -72,7 +82,9 @@
                         on:click={() => {
                             selectId(fixture.id);
                         }}
-                        title={calibrated ? "" : "Uncalibrated for atleast one point."}
+                        title={calibrated
+                            ? ""
+                            : "Uncalibrated for atleast one point."}
                     >
                         Fixture {index + 1}: {fixture.name || "Unnamed"}
                         {calibrated ? "" : "<!>"}
@@ -83,6 +95,12 @@
             <button on:click={addFixture}> Add Fixture </button>
         </div>
         {#if selectedId !== null && $fixtures[selectedId] !== undefined}
+            {@const missingPoints = Object.keys($calibrationPoints).filter(
+                (calibration_point_id) =>
+                    !Object.keys($fixtures[selectedId].calibration).includes(
+                        calibration_point_id,
+                    ),
+            )}
             <div class="side-by-side-right">
                 <div class="fixture">
                     <h2>{$fixtures[selectedId].name || "Unnamed"}</h2>
@@ -226,6 +244,20 @@
                             });
                         }}>Calibrate for one point</button
                     >
+                    {#if missingPoints.length > 0}
+                        <br />
+                        <button
+                            class="fixture-settings-button"
+                            on:click={() => {
+                                dispatch("calibrate_missing_points", {
+                                    fixture_id: selectedId,
+                                    calibration_points_missing: missingPoints,
+                                });
+                            }}
+                        >
+                            Calibrate for non-calibrated points ({missingPoints.length})
+                        </button>
+                    {/if}
                     <br />
                     <button
                         class="fixture-settings-button remove-fixture-button"

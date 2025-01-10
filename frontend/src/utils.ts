@@ -53,21 +53,9 @@ export function calcPan(fixture: Fixture, mousePos: MousePos, mouseDragStart: Mo
     return fixture.minPan + x * (fixture.maxPan - fixture.minPan);
 }
 
-export function convertFixturesToGo(fixtures: Fixtures, calibrationPoints: CalibrationPoints): main.Fixture[] {
-    let goFixtures: main.Fixture[] = [];
+export function convertFixturesToGo(fixtures: Fixtures, calibrationPoints: CalibrationPoints): { [id: string]: main.Fixture } {
+    let goFixtures: { [id: string]: main.Fixture } = {};
     for (let fixture of Object.values(fixtures)) {
-        let calibrated =
-            Object.keys(calibrationPoints).filter(
-                (calibration_point_id) =>
-                    !Object.keys(fixture.calibration).includes(
-                        calibration_point_id,
-                    ),
-            ).length === 0;
-        if (!calibrated) {
-            console.log(`skipping ${fixture.name}`)
-            return;
-        }
-
         let goCalibration: {
             [id: string]: main.CalibratedCalibrationPoint;
         } = {};
@@ -80,18 +68,16 @@ export function convertFixturesToGo(fixtures: Fixtures, calibrationPoints: Calib
             });
         }
 
-        goFixtures.push(
-            new main.Fixture({
-                Id: fixture.id,
-                Name: fixture.name,
-                Universe: fixture.universe,
-                PanAddress: fixture.panAddress,
-                FinePanAddress: fixture.finePanAddress,
-                TiltAddress: fixture.tiltAddress,
-                FineTiltAddress: fixture.fineTiltAddress,
-                Calibration: goCalibration
-            }),
-        );
+        goFixtures[fixture.id] = new main.Fixture({
+            Id: fixture.id,
+            Name: fixture.name,
+            Universe: fixture.universe,
+            PanAddress: fixture.panAddress,
+            FinePanAddress: fixture.finePanAddress,
+            TiltAddress: fixture.tiltAddress,
+            FineTiltAddress: fixture.fineTiltAddress,
+            Calibration: goCalibration
+        });
     }
 
     return goFixtures;

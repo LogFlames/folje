@@ -26,11 +26,11 @@ func main() {
 		},
 		BackgroundColour:         &options.RGBA{R: 8, G: 18, B: 34, A: 1},
 		OnStartup:                app.startup,
+		OnShutdown:               app.shutdown,
 		WindowStartState:         options.Maximised,
 		EnableDefaultContextMenu: false,
 		Bind: []interface{}{
 			app,
-			&Folje{},
 		},
 		Mac: &mac.Options{
 			TitleBar: &mac.TitleBar{

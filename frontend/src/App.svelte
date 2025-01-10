@@ -24,7 +24,8 @@
         type SvelteToastOptions,
     } from "@zerodevx/svelte-toast";
     import { main } from "../wailsjs/go/models";
-    import * as Folje from "../wailsjs/go/main/Folje";
+    import * as App from "../wailsjs/go/main/App";
+    import { detach } from "svelte/internal";
 
     interface CalibratingFixture {
         fixture_id: string;
@@ -133,11 +134,11 @@
     fixtures.subscribe((fixtures) => {
         checkAllFixturesCalibrated(fixtures, get(calibrationPoints));
 
-        let goFixtures: Array<main.Fixture> = convertFixturesToGo(
+        let goFixtures: { [id: string]: main.Fixture } = convertFixturesToGo(
             fixtures,
             get(calibrationPoints),
         );
-        Folje.SetFixtures(goFixtures);
+        App.SetFixtures(goFixtures);
     });
 
     calibrationPoints.subscribe((calibrationPoints) => {
@@ -146,7 +147,7 @@
 
         let goCalibrationPoints: { [id: string]: main.CalibrationPoint } =
             convertCalibrationPointsToGo(calibrationPoints);
-        Folje.SetCalibrationPoints(goCalibrationPoints);
+        App.SetCalibrationPoints(goCalibrationPoints);
     });
 
     function calculateCalibrationPointOutline(calibrationPoints: {
@@ -157,8 +158,11 @@
         );
     }
 
-    function showNotification(message: string) {
-        toast.push(message);
+    function showNotification(message: string, time_ms: number = 5000) {
+        let options: SvelteToastOptions = {
+            duration: time_ms,
+        };
+        toast.push(message, options);
     }
 
     function addCalibrationPoint() {
@@ -324,6 +328,21 @@
         calibrationPointsToCalibrate.set([]);
     }
 
+    function calibrateFixtureForMissingPoints(
+        fixture_id: string,
+        calibration_points_missing: string[],
+    ) {
+        hideAllSettings = true;
+        showCalibrationPoints = true;
+
+        currentlyCalibrating.set({
+            fixture_id: fixture_id,
+            calibration_point_id: calibration_points_missing.pop(),
+        });
+
+        calibrationPointsToCalibrate.set(calibration_points_missing);
+    }
+
     function calibrateFixtureForAllPoints(fixture_id: string) {
         hideAllSettings = true;
         showCalibrationPoints = true;
@@ -427,6 +446,7 @@
 
                     showNotification(
                         `Calibrated '${fixture.name}' at '${calibrationPoint.name}' (x: ${calibrationPoint.x.toFixed(4)}, y: ${calibrationPoint.y.toFixed(4)}) with pan: ${Math.floor(pan)}, tilt: ${Math.floor(tilt)}.`,
+                        10000,
                     );
 
                     return fixtures;
@@ -532,6 +552,16 @@
         );
 
         mousePos.set({ x, y });
+
+        if (
+            get(currentlyCalibrating) !== null &&
+            !calibrateForOnePointSelectCalibrationPoint
+        ) {
+            let fixture = get(fixtures)[get(currentlyCalibrating).fixture_id];
+            let pan = calcPan(fixture, get(mousePos), get(mouseDragStart));
+            let tilt = calcPan(fixture, get(mousePos), get(mouseDragStart));
+            App.SendPanTilt(get(currentlyCalibrating).fixture_id, Math.floor(pan), Math.floor(tilt));
+        }
     }
 </script>
 
@@ -667,6 +697,12 @@
                         on:calibrate_one_point={(event) => {
                             calibrateFixtureForOnePoint(
                                 event.detail.fixture_id,
+                            );
+                        }}
+                        on:calibrate_missing_points={(event) => {
+                            calibrateFixtureForMissingPoints(
+                                event.detail.fixture_id,
+                                event.detail.calibration_points_missing,
                             );
                         }}
                     />
