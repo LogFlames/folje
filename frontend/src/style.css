@@ -4,23 +4,30 @@
     --secondary-bg-color: rgba(44, 44, 44, 0.8);
     --main-bg-color-transparent: rgba(44, 44, 44, 0.3);
     --main-notification-bg-color: rgba(101, 135, 204, 0.7);
-    
+
     /* Neutral buttons */
     --main-button-color: #666666;
     --main-button-hover-color: #808080;
     --main-button-active-color: #4d4d4d;
-    
+
     /* Light gray text */
     --main-text-color: #e6e6e6;
-    
+
     /* Status colors */
     --main-red-color-transparent: rgba(255, 0, 0, 0.9);
     --main-red-color: rgb(204, 71, 71);
     --main-green-color-transparent: rgba(0, 255, 0, 0.9);
     --main-green-color: rgba(0, 255, 0);
-    
+
     /* Overlay */
     --overlay: rgba(26, 26, 26, 0.75);
+
+    /* Toast */
+    --toastContainerTop: auto;
+    --toastContainerRight: 20px;
+    --toastContainerBottom: 20px;
+    --toastContainerLeft: auto;
+    --toastContainerZIndex: 9999;
 }
 
 html {
@@ -55,7 +62,7 @@ button {
     color: var(--main-text-color);
     background-color: var(--main-button-color);
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -76,15 +83,16 @@ select {
     color: var(--main-text-color);
     background-color: var(--main-button-color);
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
-ul {
-    margin: 0;
-}
-
-li {
-    width: 0;
+label, div, select, button, .info-box {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }

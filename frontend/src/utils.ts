@@ -1,4 +1,5 @@
-import type { Fixture, Point, MousePos, CalibrationPoint } from "./types";
+import { main } from "../wailsjs/go/models";
+import type { Fixture, Point, MousePos, CalibrationPoint, Fixtures, CalibrationPoints } from "./types";
 
 export function convexHull(points: CalibrationPoint[]): Point[] {
     if (points.length < 3) return points;
@@ -39,7 +40,7 @@ export function convexHull(points: CalibrationPoint[]): Point[] {
 export function calcTilt(fixture: Fixture, mousePos: MousePos, mouseDragStart: MousePos): number {
     let y = mousePos.y;
     if (mouseDragStart !== null) {
-        y = mouseDragStart.y + (mousePos.y - mouseDragStart.y) * 0.002;
+        y = mouseDragStart.y + (mousePos.y - mouseDragStart.y) * 0.01;
     }
     return fixture.minTilt + y * (fixture.maxTilt - fixture.minTilt);
 }
@@ -47,7 +48,66 @@ export function calcTilt(fixture: Fixture, mousePos: MousePos, mouseDragStart: M
 export function calcPan(fixture: Fixture, mousePos: MousePos, mouseDragStart: MousePos): number {
     let x = mousePos.x;
     if (mouseDragStart !== null) {
-        x = mouseDragStart.x + (mousePos.x - mouseDragStart.x) * 0.002;
+        x = mouseDragStart.x + (mousePos.x - mouseDragStart.x) * 0.01;
     }
     return fixture.minPan + x * (fixture.maxPan - fixture.minPan);
+}
+
+export function convertFixturesToGo(fixtures: Fixtures, calibrationPoints: CalibrationPoints): main.Fixture[] {
+    let goFixtures: main.Fixture[] = [];
+    for (let fixture of Object.values(fixtures)) {
+        let calibrated =
+            Object.keys(calibrationPoints).filter(
+                (calibration_point_id) =>
+                    !Object.keys(fixture.calibration).includes(
+                        calibration_point_id,
+                    ),
+            ).length === 0;
+        if (!calibrated) {
+            console.log(`skipping ${fixture.name}`)
+            return;
+        }
+
+        let goCalibration: {
+            [id: string]: main.CalibratedCalibrationPoint;
+        } = {};
+
+        for (let calibratedRalibrationPointId in fixture.calibration) {
+            goCalibration[calibratedRalibrationPointId] = new main.CalibratedCalibrationPoint({
+                Id: calibratedRalibrationPointId,
+                Pan: Math.floor(fixture.calibration[calibratedRalibrationPointId].pan),
+                Tilt: Math.floor(fixture.calibration[calibratedRalibrationPointId].tilt)
+            });
+        }
+
+        goFixtures.push(
+            new main.Fixture({
+                Id: fixture.id,
+                Name: fixture.name,
+                Universe: fixture.universe,
+                PanAddress: fixture.panAddress,
+                FinePanAddress: fixture.finePanAddress,
+                TiltAddress: fixture.tiltAddress,
+                FineTiltAddress: fixture.fineTiltAddress,
+                Calibration: goCalibration
+            }),
+        );
+    }
+
+    return goFixtures;
+}
+
+export function convertCalibrationPointsToGo(calibrationPoints: CalibrationPoints): { [id: string]: main.CalibrationPoint } {
+    let goCalibrationPoints: { [id: string]: main.CalibrationPoint } = {};
+
+    for (let calibrationPoint of Object.values(calibrationPoints)) {
+        goCalibrationPoints[calibrationPoint.id] = new main.CalibrationPoint({
+            Id: calibrationPoint.id,
+            Name: calibrationPoint.name,
+            X: calibrationPoint.x,
+            Y: calibrationPoint.y
+        });
+    }
+
+    return goCalibrationPoints;
 }

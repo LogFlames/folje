@@ -30,6 +30,7 @@ func main() {
 		EnableDefaultContextMenu: false,
 		Bind: []interface{}{
 			app,
+			&Folje{},
 		},
 		Mac: &mac.Options{
 			TitleBar: &mac.TitleBar{

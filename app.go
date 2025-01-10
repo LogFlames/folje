@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 )
 
 // App struct
@@ -21,7 +20,48 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
+type Folje struct {
+	fixtures          []Fixture
+	calibrationPoints map[string]CalibrationPoint
+}
+
+func (f *Folje) TypeExporter(point Point, calibrationPoint CalibrationPoint, calibratedCalibrationPoint CalibratedCalibrationPoint, fixture Fixture) {
+
+}
+
+func (f *Folje) SetCalibrationPoints(calibrationPoints map[string]CalibrationPoint) {
+	f.calibrationPoints = calibrationPoints
+}
+
+func (f *Folje) SetFixtures(fixtures []Fixture) {
+	f.fixtures = fixtures
+}
+
+type Point struct {
+	X float32
+	Y float32
+}
+
+type CalibrationPoint struct {
+	Id   string
+	Name string
+	X    float32
+	Y    float32
+}
+
+type CalibratedCalibrationPoint struct {
+	Id   string
+	Pan  int
+	Tilt int
+}
+
+type Fixture struct {
+	Id              string
+	Name            string
+	Universe        int
+	PanAddress      int
+	FinePanAddress  int
+	TiltAddress     int
+	FineTiltAddress int
+	Calibration     map[string]CalibratedCalibrationPoint
 }

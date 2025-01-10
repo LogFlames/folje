@@ -35,3 +35,6 @@ export interface MousePos {
     x: number;
     y: number;
 }
+
+export type Fixtures = { [id: string]: Fixture };
+export type CalibrationPoints = { [id: string]: CalibrationPoint };

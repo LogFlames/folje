@@ -1,18 +1,38 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { writable, get } from "svelte/store";
-    import Fixtures from "./Fixtures.svelte";
-    import type { Fixture, CalibrationPoint, MousePos, Point } from "./types";
+    import FixtureConfiguration from "./FixtureConfiguration.svelte";
+    import type {
+        Fixture,
+        CalibrationPoint,
+        MousePos,
+        Point,
+        CalibrationPoints,
+        Fixtures,
+    } from "./types";
     import { v4 as uuidv4 } from "uuid";
-    import { calcPan, calcTilt, convexHull } from "./utils";
+    import {
+        calcPan,
+        calcTilt,
+        convertCalibrationPointsToGo,
+        convertFixturesToGo,
+        convexHull,
+    } from "./utils";
+    import {
+        toast,
+        SvelteToast,
+        type SvelteToastOptions,
+    } from "@zerodevx/svelte-toast";
+    import { main } from "../wailsjs/go/models";
+    import * as Folje from "../wailsjs/go/main/Folje";
 
     interface CalibratingFixture {
         fixture_id: string;
         calibration_point_id: string;
     }
 
-    let videoElement;
-    let videoSelect;
+    let videoElement: HTMLVideoElement;
+    let videoSelect: HTMLSelectElement;
 
     let videoStartX;
     let videoStartY;
@@ -24,20 +44,20 @@
     let deviceInfos = writable<MediaDeviceInfo[]>([]);
     let stream = writable<MediaStream>();
 
-    let notifications = writable<{ [id: string]: string }>({});
+    let notificationHolderElement: HTMLDivElement;
 
     let mousePos = writable<MousePos>({ x: 0, y: 0 });
     let mouseDragStart = writable<MousePos>(null);
 
     let showFixtures = false;
-    let fixtures = writable<{ [id: string]: Fixture }>({});
+    let fixtures = writable<Fixtures>({});
     let allFixturesCalibrated = writable<boolean>(true);
 
     let calibrationPointOutline = writable<Point[]>([]);
 
     let calibrationPointCounter = writable<number>(0);
 
-    let calibrationPoints = writable<{ [id: string]: CalibrationPoint }>({
+    let calibrationPoints = writable<CalibrationPoints>({
         "1aoeu": { id: "1aoeu", name: getNewCalibrationName(), x: 0.5, y: 0.5 },
         "2aoeu": { id: "2aoeu", name: getNewCalibrationName(), x: 0.1, y: 0.5 },
         "3aoeu": { id: "3aoeu", name: getNewCalibrationName(), x: 0.9, y: 0.5 },
@@ -60,6 +80,8 @@
 
     let currentlyCalibrating = writable<CalibratingFixture | null>(null);
 
+    const notificationOptions: SvelteToastOptions = {};
+
     const toggleShowMousePosition = () => {
         showMousePosition = !showMousePosition;
     };
@@ -78,16 +100,6 @@
 
     onMount(() => {
         getStream().then(getDevices).then(gotDevices);
-    });
-
-    onMount(() => {
-        window.addEventListener("keyup", (event) => {
-            if (event.preventDefault) {
-                return;
-            }
-
-            handleKeyup(event);
-        });
     });
 
     function getNewCalibrationName() {
@@ -120,10 +132,21 @@
 
     fixtures.subscribe((fixtures) => {
         checkAllFixturesCalibrated(fixtures, get(calibrationPoints));
+
+        let goFixtures: Array<main.Fixture> = convertFixturesToGo(
+            fixtures,
+            get(calibrationPoints),
+        );
+        Folje.SetFixtures(goFixtures);
     });
 
     calibrationPoints.subscribe((calibrationPoints) => {
         checkAllFixturesCalibrated(get(fixtures), calibrationPoints);
+        calculateCalibrationPointOutline(calibrationPoints);
+
+        let goCalibrationPoints: { [id: string]: main.CalibrationPoint } =
+            convertCalibrationPointsToGo(calibrationPoints);
+        Folje.SetCalibrationPoints(goCalibrationPoints);
     });
 
     function calculateCalibrationPointOutline(calibrationPoints: {
@@ -134,23 +157,8 @@
         );
     }
 
-    calibrationPoints.subscribe((calibrationPoints) => {
-        calculateCalibrationPointOutline(calibrationPoints);
-    });
-
-    function showNotification(message: string, time_ms: number = 5000) {
-        let unique_id = uuidv4();
-        notifications.update((notifications) => {
-            notifications[unique_id] = message;
-            return notifications;
-        });
-
-        setTimeout(() => {
-            notifications.update((notifications) => {
-                delete notifications[unique_id];
-                return notifications;
-            });
-        }, time_ms);
+    function showNotification(message: string) {
+        toast.push(message);
     }
 
     function addCalibrationPoint() {
@@ -166,6 +174,10 @@
     }
 
     function handleKeyup(event: KeyboardEvent) {
+        if (event.key === " " || event.key === "Escape") {
+            event.preventDefault();
+        }
+
         if (event.repeat) {
             return;
         }
@@ -205,11 +217,13 @@
         } else if (event.key === " ") {
             mouseDragStart.set(null);
         }
-
-        event.preventDefault();
     }
 
     function handleKeydown(event: KeyboardEvent) {
+        if (event.key === " " || event.key === "Escape") {
+            event.preventDefault();
+        }
+
         if (event.repeat) {
             return;
         }
@@ -376,42 +390,57 @@
 
                 calibrationPointsToCalibrate.set([]);
             }
-        } else if (
-            get(currentlyCalibrating) !== null &&
-            !calibrateForOnePointSelectCalibrationPoint
-        ) {
-            fixtures.update((fixtures) => {
-                let fixture = fixtures[get(currentlyCalibrating).fixture_id];
-                let pan = calcPan(fixture, get(mousePos), get(mouseDragStart));
-                let tilt = calcTilt(
-                    fixture,
-                    get(mousePos),
-                    get(mouseDragStart),
+        } else if (get(currentlyCalibrating) !== null) {
+            if (calibrateForOnePointSelectCalibrationPoint) {
+                showNotification(
+                    "Click on calibration point to select it. ESC to cancel.",
                 );
+            } else {
+                fixtures.update((fixtures) => {
+                    let fixture =
+                        fixtures[get(currentlyCalibrating).fixture_id];
+                    let calibrationPoint =
+                        get(calibrationPoints)[
+                            get(currentlyCalibrating).calibration_point_id
+                        ];
 
-                fixture.calibration[
-                    get(currentlyCalibrating).calibration_point_id
-                ] = {
-                    id: get(currentlyCalibrating).calibration_point_id,
-                    pan: pan,
-                    tilt: tilt,
-                };
+                    let pan = calcPan(
+                        fixture,
+                        get(mousePos),
+                        get(mouseDragStart),
+                    );
+                    let tilt = calcTilt(
+                        fixture,
+                        get(mousePos),
+                        get(mouseDragStart),
+                    );
 
-                fixtures[get(currentlyCalibrating).fixture_id] = fixture;
+                    fixture.calibration[
+                        get(currentlyCalibrating).calibration_point_id
+                    ] = {
+                        id: get(currentlyCalibrating).calibration_point_id,
+                        pan: pan,
+                        tilt: tilt,
+                    };
 
-                return fixtures;
-            });
+                    fixtures[get(currentlyCalibrating).fixture_id] = fixture;
 
-            moveToNextFixtureOrCalibrationPointOrCancel();
+                    showNotification(
+                        `Calibrated '${fixture.name}' at '${calibrationPoint.name}' (x: ${calibrationPoint.x.toFixed(4)}, y: ${calibrationPoint.y.toFixed(4)}) with pan: ${Math.floor(pan)}, tilt: ${Math.floor(tilt)}.`,
+                    );
+
+                    return fixtures;
+                });
+
+                moveToNextFixtureOrCalibrationPointOrCancel();
+            }
         } else if (removingCalibrationPoint) {
             removingCalibrationPoint = false;
             hideAllSettings = false;
         } else {
-            lockMousePos = !lockMousePos;
-
-            if (!lockMousePos) {
-                handleMouseMove(event);
-            }
+            handleMouseMove(event);
+            lockMousePos = true;
+            showNotification("Locked mouse");
         }
     }
 
@@ -507,6 +536,8 @@
 </script>
 
 <svelte:window on:keyup={handleKeyup} on:keydown={handleKeydown} />
+
+<SvelteToast options={notificationOptions} />
 
 <main>
     <div class="content" on:mousemove={handleMouseMove}>
@@ -625,7 +656,7 @@
             <div class="overlay" on:click={toggleShowFixtures}>
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <div on:click|stopPropagation>
-                    <Fixtures
+                    <FixtureConfiguration
                         bind:fixtures
                         bind:calibrationPoints
                         on:calibrate_all_points={(event) => {
@@ -737,7 +768,7 @@
             <div>Mouse postion locked</div>
         {/if}
     </div>
-    {#if addingCalibrationPoint || removingCalibrationPoint || ($currentlyCalibrating !== null && !calibrateForOnePointSelectCalibrationPoint) || calibrateForOnePointSelectCalibrationPoint}
+    {#if addingCalibrationPoint || removingCalibrationPoint || ($currentlyCalibrating !== null && !calibrateForOnePointSelectCalibrationPoint) || calibrateForOnePointSelectCalibrationPoint || Object.keys($fixtures).length === 0 || Object.keys($calibrationPoints).length === 0}
         <div class="tooltip">
             {#if addingCalibrationPoint}
                 <div>
@@ -781,15 +812,23 @@
                     calibration points. These will not get any pan/tilt data.
                 </div>
             {/if}
+            {#if Object.keys($fixtures).length === 0}
+                <div>
+                    No fixtures. Either load a configuration or add them by
+                    going into Settings (top right cog) &gt; Fixtures &gt; Add
+                    fixture.
+                </div>
+            {/if}
+            {#if Object.keys($calibrationPoints).length === 0}
+                <div>
+                    No calibration points. Either load a configuration or add
+                    them by going into Settings (top right cog) &gt; Add
+                    calibration point.
+                </div>
+            {/if}
         </div>
     {/if}
-    <div class="notifications-div">
-        {#each Object.values($notifications) as notification}
-            <div class="notification">
-                {notification}
-            </div>
-        {/each}
-    </div>
+    <div class="notifications-div" bind:this={notificationHolderElement}></div>
 </main>
 
 <style>
@@ -819,7 +858,7 @@
         left: 10px;
         background-color: var(--main-bg-color-transparent);
         padding: 10px;
-        border-radius: 8px;
+        border-radius: 6px;
         z-index: 3;
     }
 
@@ -871,8 +910,8 @@
         top: 0;
         right: 0;
         background-color: var(--overlay);
-        padding: 10px;
-        border-radius: 10px;
+        padding: 8px;
+        border-radius: 6px;
         text-align: right;
     }
 
@@ -886,6 +925,10 @@
         border-radius: 20px;
         background-color: var(--overlay);
         padding: 10px;
+    }
+
+    .tooltip > div {
+        margin-top: 8px;
     }
 
     .info-box > div {
@@ -932,44 +975,10 @@
         transform: translate(-50%, -50%);
         width: 32px; /* Adjust to make the outer circle larger */
         height: 32px;
-        border-radius: 4px;
         border-style: solid;
         border-color: red;
         border-radius: 50%;
         box-sizing: border-box;
-    }
-
-    .notifications-div {
-        position: absolute;
-        top: 100px;
-        text-align: center;
-        right: 0;
-        left: 50%;
-        transform: translate(-50%, 0);
-        width: 40%;
-        z-index: 5;
-    }
-
-    .notification {
-        background-color: var(--main-notification-bg-color);
-        color: var(--main-text-color);
-        padding: 8px;
-        margin: 2px;
-        font-size: 20px;
-        border-radius: 8px;
-        animation: scaleIn 0.3s forwards ease-in-out; /* Automatically scale in when created */
-        transform-origin: center; /* Pivot point for scaling */
-    }
-
-    @keyframes scaleIn {
-        from {
-            transform: scale(0);
-            opacity: 0;
-        }
-        to {
-            transform: scale(1);
-            opacity: 1;
-        }
     }
 
     .settings-separator {

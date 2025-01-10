@@ -47,6 +47,10 @@
             selectedId = id;
         }
     }
+
+    function fixtureUpdated() {
+        fixtures.update((fixtures) => fixtures);
+    }
 </script>
 
 <div class="overlay-content">
@@ -89,6 +93,7 @@
                             <input
                                 type="text"
                                 bind:value={$fixtures[selectedId].name}
+                                on:change={fixtureUpdated}
                                 placeholder="Enter fixture name"
                             />
                         </label>
@@ -99,6 +104,7 @@
                             <input
                                 type="number"
                                 bind:value={$fixtures[selectedId].universe}
+                                on:change={fixtureUpdated}
                                 min="1"
                                 step="1"
                             />
@@ -110,6 +116,7 @@
                             <input
                                 type="number"
                                 bind:value={$fixtures[selectedId].panAddress}
+                                on:change={fixtureUpdated}
                                 min="1"
                                 max="512"
                             />
@@ -122,6 +129,7 @@
                                 type="number"
                                 bind:value={$fixtures[selectedId]
                                     .finePanAddress}
+                                on:change={fixtureUpdated}
                                 min="1"
                                 max="512"
                             />
@@ -133,6 +141,7 @@
                             <input
                                 type="number"
                                 bind:value={$fixtures[selectedId].tiltAddress}
+                                on:change={fixtureUpdated}
                                 min="1"
                                 max="512"
                             />
@@ -145,6 +154,7 @@
                                 type="number"
                                 bind:value={$fixtures[selectedId]
                                     .fineTiltAddress}
+                                on:change={fixtureUpdated}
                                 min="1"
                                 max="512"
                             />
@@ -156,6 +166,7 @@
                             <input
                                 type="number"
                                 bind:value={$fixtures[selectedId].minPan}
+                                on:change={fixtureUpdated}
                                 min="0"
                                 max="65535"
                             />
@@ -167,6 +178,7 @@
                             <input
                                 type="number"
                                 bind:value={$fixtures[selectedId].maxPan}
+                                on:change={fixtureUpdated}
                                 min="0"
                                 max="65535"
                             />
@@ -178,6 +190,7 @@
                             <input
                                 type="number"
                                 bind:value={$fixtures[selectedId].minTilt}
+                                on:change={fixtureUpdated}
                                 min="0"
                                 max="65535"
                             />
@@ -189,6 +202,7 @@
                             <input
                                 type="number"
                                 bind:value={$fixtures[selectedId].maxTilt}
+                                on:change={fixtureUpdated}
                                 min="0"
                                 max="65535"
                             />
@@ -239,7 +253,7 @@
     .overlay-content {
         background: var(--secondary-bg-color);
         padding: 20px;
-        border-radius: 8px;
+        border-radius: 6px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         text-align: center;
     }
