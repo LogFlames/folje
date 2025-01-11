@@ -52,7 +52,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v3
         with:
-          name: build-${{ matrix.build.platform }}
+          name: build-${{ matrix.build.os }}
           path: ./build/bin/*
 
   release:
@@ -62,13 +62,13 @@ jobs:
       - name: Download Windows Artifact
         uses: actions/download-artifact@v3
         with:
-          name: build-windows/amd64
+          name: build-windows-latest
           path: ./windows-build-output/
 
       - name: Download macOS Artifact
         uses: actions/download-artifact@v3
         with:
-          name: build-darwin/universal
+          name: build-macos-latest
           path: ./macos-build-output/
 
       - uses: pyTooling/Actions/releaser@r0
