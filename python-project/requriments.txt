@@ -1,4 +1,0 @@
-sacn==1.9.0
-opencv-python==4.10.0.84
-scipy==1.14.0
-windows-capture-devices==1.0.0
