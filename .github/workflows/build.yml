@@ -65,7 +65,20 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Move latest tag
+        run: |
+          git tag -f latest
+          git push -f --tags
+        shell: bash
+
       - name: Download Windows Artifact
         uses: actions/download-artifact@v4
         with:
