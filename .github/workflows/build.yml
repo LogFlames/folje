@@ -50,7 +50,10 @@ jobs:
 
       - name: Compress mac app
         if: matrix.build.os == 'macos-latest'
-        run: zip -r -X ./build/bin/Följe.app.zip ./build/bin/Följe.app
+        run: |
+          cd ./build/bin
+          zip -r -X ./Följe.app.zip ./Följe.app
+          cd ../..
         shell: bash
 
       - name: Upload Build Artifacts
