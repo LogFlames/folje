@@ -17,10 +17,16 @@ If you have a fixture without fine pan/tilt leave those addresses as `0`. Only a
 
 ### sACN configuration
 
-## TODOs
+## TODOs and known bugs
+
+### TODOs
 
 - Increase efficiency of the locate point function for the linear interpolation
 - Add save/load functionality
+
+### Known Bugs
+
+- When in 'calibrate all'-mode, after you click to confirm a calibration, the fixture moves up to 0, 0 until you move the mouse at which point it snaps back to absolute pan/tilt-mode. Should be solved by sending a 'App.SetPanTiltForFixture' directly when setting the new 'currentlyCalibrating' struct in the clickHandeler.
 
 ## Build
 
