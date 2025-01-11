@@ -54,7 +54,8 @@ body {
     display: none !important;
 }
 
-button, select {
+button,
+select {
     display: inline-block;
     padding: 8px 12px;
     font-size: 16px;
@@ -67,15 +68,21 @@ button, select {
     transition: all 0.3s ease;
 }
 
-button:hover, select:hover {
+button:hover,
+select:hover {
     background-color: var(--main-button-hover-color);
 }
 
-button:active, select:active {
+button:active,
+select:active {
     background-color: var(--main-button-active-color);
 }
 
-label, div, select, button, .info-box {
+label,
+div,
+select,
+button,
+.info-box {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -90,4 +97,8 @@ label, div, select, button, .info-box {
     border-radius: 6px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     text-align: center;
+}
+
+span.small {
+    font-size: 10px;
 }

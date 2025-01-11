@@ -11,7 +11,7 @@ It started as a python-script written in 6h for Kårspexet 23/24 by Elias Lundel
 
 ### Fixtures
 
-If you have a fixture without fine pan/tilt leave those addresses as `0`. Only addresses that are in `[1, 512]` will be used.
+If you have a fixture without fine pan/tilt leave those addresses as `0`. Only addresses that are in the range `[1, 512]` will be used.
 
 ### Calibration points
 

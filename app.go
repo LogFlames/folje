@@ -158,9 +158,6 @@ func (a *App) ConfirmDialog(title string, message string) string {
 	return res
 }
 
-func (a *App) TypeExporter(point Point, calibrationPoint CalibrationPoint, calibratedCalibrationPoint CalibratedCalibrationPoint, fixture Fixture, sacnConfig SACNConfig) {
-}
-
 func (a *App) SetCalibrationPoints(calibrationPoints map[string]CalibrationPoint) {
 	a.calibrationPoints = calibrationPoints
 }
@@ -329,43 +326,4 @@ func (a *App) closeSACNSender() {
 
 func (a *App) GetSACNConfig() SACNConfig {
 	return *a.sacnConfig
-}
-
-type Point struct {
-	X float32
-	Y float32
-}
-
-type CalibrationPoint struct {
-	Id   string
-	Name string
-	X    float32
-	Y    float32
-}
-
-type CalibratedCalibrationPoint struct {
-	Id   string
-	Pan  int
-	Tilt int
-}
-
-type Fixture struct {
-	Id              string
-	Name            string
-	Universe        uint16
-	PanAddress      int
-	FinePanAddress  int
-	TiltAddress     int
-	FineTiltAddress int
-	Calibration     map[string]CalibratedCalibrationPoint
-}
-
-type DMXData [512]byte
-
-type SACNConfig struct {
-	IpAddress           string
-	PossibleIpAddresses []string
-	Fps                 int
-	Multicast           bool
-	Destinations        []string
 }

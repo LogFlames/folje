@@ -10,8 +10,10 @@
     import * as App from "../wailsjs/go/main/App";
     import { main } from "../wailsjs/go/models";
     import FixtureConfiguration from "./FixtureConfiguration.svelte";
+    import Info from "./Info.svelte";
     import SACNConfiguration from "./SACNConfiguration.svelte";
     import type {
+        CalibratingFixture,
         CalibrationPoint,
         CalibrationPoints,
         Fixture,
@@ -28,36 +30,25 @@
         convexHull,
     } from "./utils";
 
-    interface CalibratingFixture {
-        fixture_id: string;
-        calibration_point_id: string;
-    }
-
     let videoElement: HTMLVideoElement;
     let videoSelect: HTMLSelectElement;
 
-    let videoStartX;
-    let videoStartY;
-    let videoRenderedWidth;
-    let videoRenderedHeight;
-
-    let lockMousePos = false;
+    let videoStartX: number;
+    let videoStartY: number;
+    let videoRenderedWidth: number;
+    let videoRenderedHeight: number;
 
     let deviceInfos = writable<MediaDeviceInfo[]>([]);
     let stream = writable<MediaStream>();
 
+    let lockMousePos = false;
     let mousePos = writable<MousePos>({ x: 0, y: 0 });
     let mouseDragStart = writable<MousePos>(null);
 
-    let showFixtureConfiguration = false;
-    let showSACNConfiguration = false;
     let fixtures = writable<Fixtures>({});
     let allFixturesCalibrated = writable<boolean>(true);
-
     let calibrationPointOutline = writable<Point[]>([]);
-
     let calibrationPointCounter = writable<number>(0);
-
     let calibrationPoints = writable<CalibrationPoints>({
         "1aoeu": { id: "1aoeu", name: getNewCalibrationName(), x: 0.5, y: 0.5 },
         "2aoeu": { id: "2aoeu", name: getNewCalibrationName(), x: 0.1, y: 0.5 },
@@ -66,23 +57,42 @@
         "5aoeu": { id: "5aoeu", name: getNewCalibrationName(), x: 0.5, y: 0.9 },
     });
 
-    let showSettingsMenu = false;
-    let hideAllSettings = false;
+    let addingCalibrationPoint = false;
+    let removingCalibrationPoint = false;
+    let calibrateForOnePointSelectCalibrationPoint = false;
 
     let showMousePosition = false;
     let showCalibrationPoints = false;
-    let addingCalibrationPoint = false;
-    let removingCalibrationPoint = false;
-
-    let calibrateForOnePointSelectCalibrationPoint = false;
+    let showFixtureConfiguration = false;
+    let showSACNConfiguration = false;
+    let showSettingsMenu = false;
+    let hideAllSettings = false;
 
     let fixturesToCalibrate = writable<string[]>([]);
     let calibrationPointsToCalibrate = writable<string[]>([]);
-
     let currentlyCalibrating = writable<CalibratingFixture | null>(null);
 
     let sacnConfig = writable<SACNConfig>(null);
     let sacnConfigDirty = false;
+
+    fixtures.subscribe((fixtures) => {
+        checkAllFixturesCalibrated(fixtures, get(calibrationPoints));
+
+        let goFixtures: { [id: string]: main.Fixture } = convertFixturesToGo(
+            fixtures,
+            get(calibrationPoints),
+        );
+        App.SetFixtures(goFixtures);
+    });
+
+    calibrationPoints.subscribe((calibrationPoints) => {
+        checkAllFixturesCalibrated(get(fixtures), calibrationPoints);
+        calculateCalibrationPointOutline(calibrationPoints);
+
+        let goCalibrationPoints: { [id: string]: main.CalibrationPoint } =
+            convertCalibrationPointsToGo(calibrationPoints);
+        App.SetCalibrationPoints(goCalibrationPoints);
+    });
 
     onMount(() => {
         App.GetSACNConfig().then((sacnConfigFromApp) => {
@@ -99,8 +109,6 @@
     onMount(() => {
         getStream().then(getDevices).then(gotDevices);
     });
-
-    const notificationOptions: SvelteToastOptions = {};
 
     const toggleShowMousePosition = () => {
         showMousePosition = !showMousePosition;
@@ -150,25 +158,6 @@
         allFixturesCalibrated.set(true);
     }
 
-    fixtures.subscribe((fixtures) => {
-        checkAllFixturesCalibrated(fixtures, get(calibrationPoints));
-
-        let goFixtures: { [id: string]: main.Fixture } = convertFixturesToGo(
-            fixtures,
-            get(calibrationPoints),
-        );
-        App.SetFixtures(goFixtures);
-    });
-
-    calibrationPoints.subscribe((calibrationPoints) => {
-        checkAllFixturesCalibrated(get(fixtures), calibrationPoints);
-        calculateCalibrationPointOutline(calibrationPoints);
-
-        let goCalibrationPoints: { [id: string]: main.CalibrationPoint } =
-            convertCalibrationPointsToGo(calibrationPoints);
-        App.SetCalibrationPoints(goCalibrationPoints);
-    });
-
     function calculateCalibrationPointOutline(calibrationPoints: {
         [id: string]: CalibrationPoint;
     }) {
@@ -184,6 +173,12 @@
         toast.push(message, options);
     }
 
+    function unlockMouse(event: MouseEvent) {
+        lockMousePos = false;
+        handleMouseMove(event);
+        showNotification("Unlocked mouse");
+    }
+
     function addCalibrationPoint() {
         hideAllSettings = true;
         showCalibrationPoints = true;
@@ -194,6 +189,53 @@
         hideAllSettings = true;
         showCalibrationPoints = true;
         removingCalibrationPoint = true;
+    }
+
+    function calibrateFixtureForOnePoint(fixture_id: string) {
+        hideAllSettings = true;
+        showCalibrationPoints = true;
+        calibrateForOnePointSelectCalibrationPoint = true;
+
+        currentlyCalibrating.set({
+            fixture_id: fixture_id,
+            calibration_point_id: null,
+        });
+
+        fixturesToCalibrate.set([]);
+        calibrationPointsToCalibrate.set([]);
+    }
+
+    function calibrateFixtureForMissingPoints(
+        fixture_id: string,
+        calibration_points_missing: string[],
+    ) {
+        hideAllSettings = true;
+        showCalibrationPoints = true;
+
+        currentlyCalibrating.set({
+            fixture_id: fixture_id,
+            calibration_point_id: calibration_points_missing.pop(),
+        });
+
+        calibrationPointsToCalibrate.set(calibration_points_missing);
+    }
+
+    function calibrateFixtureForAllPoints(fixture_id: string) {
+        hideAllSettings = true;
+        showCalibrationPoints = true;
+
+        currentlyCalibrating.set({
+            fixture_id: fixture_id,
+            calibration_point_id: Object.keys(get(calibrationPoints))[0],
+        });
+
+        calibrationPointsToCalibrate.set(
+            Object.keys(get(calibrationPoints)).filter(
+                (calibration_point_id) =>
+                    calibration_point_id !==
+                    get(currentlyCalibrating).calibration_point_id,
+            ),
+        );
     }
 
     function handleKeyup(event: KeyboardEvent) {
@@ -294,100 +336,6 @@
         }
     }
 
-    function moveToNextFixtureOrCalibrationPointOrCancel() {
-        if (
-            get(fixturesToCalibrate).length === 0 &&
-            get(calibrationPointsToCalibrate).length === 0
-        ) {
-            currentlyCalibrating.set(null);
-            hideAllSettings = false;
-            showCalibrationPoints = true;
-        } else if (get(calibrationPointsToCalibrate).length !== 0) {
-            currentlyCalibrating.update((currentlyCalibrating) => {
-                return {
-                    fixture_id: currentlyCalibrating.fixture_id,
-                    calibration_point_id: get(calibrationPointsToCalibrate)[0],
-                };
-            });
-            calibrationPointsToCalibrate.update(
-                (calibrationPointsToCalibrate) => {
-                    return calibrationPointsToCalibrate.filter(
-                        (calibration_point_id) =>
-                            calibration_point_id !==
-                            get(currentlyCalibrating).calibration_point_id,
-                    );
-                },
-            );
-        } else if (get(fixturesToCalibrate).length !== 0) {
-            currentlyCalibrating.update((currentlyCalibrating) => {
-                return {
-                    fixture_id: get(fixturesToCalibrate)[0],
-                    calibration_point_id:
-                        currentlyCalibrating.calibration_point_id,
-                };
-            });
-            fixturesToCalibrate.update((fixturesToCalibrate) => {
-                return fixturesToCalibrate.filter(
-                    (fixture_id) =>
-                        fixture_id !== get(currentlyCalibrating).fixture_id,
-                );
-            });
-        }
-    }
-
-    function calibrateFixtureForOnePoint(fixture_id: string) {
-        hideAllSettings = true;
-        showCalibrationPoints = true;
-        calibrateForOnePointSelectCalibrationPoint = true;
-
-        currentlyCalibrating.set({
-            fixture_id: fixture_id,
-            calibration_point_id: null,
-        });
-
-        fixturesToCalibrate.set([]);
-        calibrationPointsToCalibrate.set([]);
-    }
-
-    function calibrateFixtureForMissingPoints(
-        fixture_id: string,
-        calibration_points_missing: string[],
-    ) {
-        hideAllSettings = true;
-        showCalibrationPoints = true;
-
-        currentlyCalibrating.set({
-            fixture_id: fixture_id,
-            calibration_point_id: calibration_points_missing.pop(),
-        });
-
-        calibrationPointsToCalibrate.set(calibration_points_missing);
-    }
-
-    function calibrateFixtureForAllPoints(fixture_id: string) {
-        hideAllSettings = true;
-        showCalibrationPoints = true;
-
-        currentlyCalibrating.set({
-            fixture_id: fixture_id,
-            calibration_point_id: Object.keys(get(calibrationPoints))[0],
-        });
-
-        calibrationPointsToCalibrate.set(
-            Object.keys(get(calibrationPoints)).filter(
-                (calibration_point_id) =>
-                    calibration_point_id !==
-                    get(currentlyCalibrating).calibration_point_id,
-            ),
-        );
-    }
-
-    function unlockMouse(event: MouseEvent) {
-        lockMousePos = false;
-        handleMouseMove(event);
-        showNotification("Unlocked mouse");
-    }
-
     function handleClickOnVideo(event: MouseEvent) {
         if (lockMousePos) {
             unlockMouse(event);
@@ -485,52 +433,45 @@
         }
     }
 
-    function getDevices() {
-        return navigator.mediaDevices.enumerateDevices();
-    }
-
-    function gotDevices(p_deviceInfos) {
-        deviceInfos.set(p_deviceInfos);
-    }
-
-    function getStream() {
-        if (get(stream)) {
-            get(stream)
-                .getTracks()
-                .forEach((track) => {
-                    track.stop();
-                });
+    function moveToNextFixtureOrCalibrationPointOrCancel() {
+        if (
+            get(fixturesToCalibrate).length === 0 &&
+            get(calibrationPointsToCalibrate).length === 0
+        ) {
+            currentlyCalibrating.set(null);
+            hideAllSettings = false;
+            showCalibrationPoints = true;
+        } else if (get(calibrationPointsToCalibrate).length !== 0) {
+            currentlyCalibrating.update((currentlyCalibrating) => {
+                return {
+                    fixture_id: currentlyCalibrating.fixture_id,
+                    calibration_point_id: get(calibrationPointsToCalibrate)[0],
+                };
+            });
+            calibrationPointsToCalibrate.update(
+                (calibrationPointsToCalibrate) => {
+                    return calibrationPointsToCalibrate.filter(
+                        (calibration_point_id) =>
+                            calibration_point_id !==
+                            get(currentlyCalibrating).calibration_point_id,
+                    );
+                },
+            );
+        } else if (get(fixturesToCalibrate).length !== 0) {
+            currentlyCalibrating.update((currentlyCalibrating) => {
+                return {
+                    fixture_id: get(fixturesToCalibrate)[0],
+                    calibration_point_id:
+                        currentlyCalibrating.calibration_point_id,
+                };
+            });
+            fixturesToCalibrate.update((fixturesToCalibrate) => {
+                return fixturesToCalibrate.filter(
+                    (fixture_id) =>
+                        fixture_id !== get(currentlyCalibrating).fixture_id,
+                );
+            });
         }
-
-        const videoSource = videoSelect.value;
-        const constraints = {
-            video: {
-                deviceId: videoSource ? { exact: videoSource } : undefined,
-                width: { ideal: 1920 },
-                height: { ideal: 1080 },
-            },
-        };
-
-        return navigator.mediaDevices
-            .getUserMedia(constraints)
-            .then(gotStream)
-            .catch(handleError);
-    }
-
-    function gotStream(p_stream) {
-        stream.set(p_stream);
-        videoSelect.selectedIndex = [...videoSelect.options].findIndex(
-            (option) => option.text === p_stream.getVideoTracks()[0].label,
-        );
-        videoElement.srcObject = p_stream;
-
-        setTimeout(() => {
-            calculateVideoSize();
-        }, 100);
-    }
-
-    function handleError(error) {
-        console.error("Error: ", error);
     }
 
     function calculateVideoSize() {
@@ -596,11 +537,59 @@
             );
         }
     }
+
+    function getDevices() {
+        return navigator.mediaDevices.enumerateDevices();
+    }
+
+    function gotDevices(p_deviceInfos) {
+        deviceInfos.set(p_deviceInfos);
+    }
+
+    function getStream() {
+        if (get(stream)) {
+            get(stream)
+                .getTracks()
+                .forEach((track) => {
+                    track.stop();
+                });
+        }
+
+        const videoSource = videoSelect.value;
+        const constraints = {
+            video: {
+                deviceId: videoSource ? { exact: videoSource } : undefined,
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+            },
+        };
+
+        return navigator.mediaDevices
+            .getUserMedia(constraints)
+            .then(gotStream)
+            .catch(handleError);
+    }
+
+    function gotStream(p_stream) {
+        stream.set(p_stream);
+        videoSelect.selectedIndex = [...videoSelect.options].findIndex(
+            (option) => option.text === p_stream.getVideoTracks()[0].label,
+        );
+        videoElement.srcObject = p_stream;
+
+        setTimeout(() => {
+            calculateVideoSize();
+        }, 100);
+    }
+
+    function handleError(error) {
+        console.error("Error: ", error);
+    }
 </script>
 
 <svelte:window on:keyup={handleKeyup} on:keydown={handleKeydown} />
 
-<SvelteToast options={notificationOptions} />
+<SvelteToast />
 
 <main>
     <div class="content" on:mousemove={handleMouseMove}>
@@ -781,145 +770,22 @@
                 : "Show Calibration Points"}
         </button>
     </div>
-    <div class="info-box">
-        {#if showMousePosition}
-            <div>
-                x: {$mousePos.x}
-            </div>
-            <div>
-                y: {$mousePos.y}
-            </div>
-        {/if}
-        {#if showCalibrationPoints}
-            <div>Showing Calibration Points</div>
-        {/if}
-        {#if addingCalibrationPoint}
-            <div>Adding calibration point</div>
-        {/if}
-        {#if removingCalibrationPoint}
-            <div>Removing calibration point</div>
-        {/if}
-        {#if $currentlyCalibrating !== null && !calibrateForOnePointSelectCalibrationPoint}
-            <div>
-                Calibrating {$fixtures[$currentlyCalibrating.fixture_id].name} on
-                point {$calibrationPoints[
-                    $currentlyCalibrating.calibration_point_id
-                ].name}
-            </div>
-            <div>
-                Pan: {Math.floor(
-                    calcPan(
-                        $fixtures[$currentlyCalibrating.fixture_id],
-                        $mousePos,
-                        $mouseDragStart,
-                    ),
-                )}
-            </div>
-            <div>
-                Tilt: {Math.floor(
-                    calcTilt(
-                        $fixtures[$currentlyCalibrating.fixture_id],
-                        $mousePos,
-                        $mouseDragStart,
-                    ),
-                )}
-            </div>
-        {/if}
-        {#if calibrateForOnePointSelectCalibrationPoint}
-            <div>
-                Calibrating {$fixtures[$currentlyCalibrating.fixture_id].name},
-                select calibration point.
-            </div>
-        {/if}
-        {#if $fixturesToCalibrate.length > 0}
-            <div>
-                Fixtures to calibrate:
-                <br />
-                <span class="small">
-                    {#each $fixturesToCalibrate as fixture}
-                        {$fixtures[fixture].name},
-                    {/each}
-                </span>
-            </div>
-        {/if}
-        {#if $calibrationPointsToCalibrate.length > 0}
-            <div>
-                Calibration points to calibrate for:
-                <br />
-                <span class="small">
-                    {#each $calibrationPointsToCalibrate as calibrationPoint}
-                        {$calibrationPoints[calibrationPoint].name},
-                    {/each}
-                </span>
-            </div>
-        {/if}
-        {#if !$allFixturesCalibrated}
-            <div>&lt;!&gt; There are uncalibrated fixtures &lt;!&gt;</div>
-        {/if}
-        {#if lockMousePos}
-            <div>Mouse postion locked</div>
-        {/if}
-    </div>
-    {#if addingCalibrationPoint || removingCalibrationPoint || ($currentlyCalibrating !== null && !calibrateForOnePointSelectCalibrationPoint) || calibrateForOnePointSelectCalibrationPoint || Object.keys($fixtures).length === 0 || Object.keys($calibrationPoints).length === 0}
-        <div class="tooltip">
-            {#if addingCalibrationPoint}
-                <div>
-                    Click on the camera-feed to create a calibration point
-                    there.
-                    <br />
-                    Press ESC to cancel.
-                </div>
-            {/if}
-            {#if removingCalibrationPoint}
-                <div>
-                    Click on a calibration point to remove it and all
-                    calibrations to that point on the fixtures.
-                    <br />
-                    Press ESC to cancel.
-                </div>
-            {/if}
-            {#if $currentlyCalibrating !== null && !calibrateForOnePointSelectCalibrationPoint}
-                <div>
-                    Calibrating a fixture for the green calibration point. Click
-                    to lock pan/tilt.
-                    <br />
-                    To get finer control of pan and tilt, press and hold Space. You
-                    must keep pressing space until you have locked pan/tilt by clicking.
-                    <br />
-                    Press ESC to not calibrate this fixture. (NOTE if you have more
-                    fixtures to be calibrated you will move on to the next one)
-                </div>
-            {/if}
-            {#if calibrateForOnePointSelectCalibrationPoint}
-                <div>
-                    Select the point to calibrate the fixture for by clicking on
-                    it.
-                    <br />
-                    Press ESC to cancel.
-                </div>
-            {/if}
-            {#if !$allFixturesCalibrated}
-                <div>
-                    There are fixtures which are not calibrated for all
-                    calibration points. These will not get any pan/tilt data.
-                </div>
-            {/if}
-            {#if Object.keys($fixtures).length === 0}
-                <div>
-                    No fixtures. Either load a configuration or add them by
-                    going into Settings (top right cog) &gt; Fixtures &gt; Add
-                    fixture.
-                </div>
-            {/if}
-            {#if Object.keys($calibrationPoints).length === 0}
-                <div>
-                    No calibration points. Either load a configuration or add
-                    them by going into Settings (top right cog) &gt; Add
-                    calibration point.
-                </div>
-            {/if}
-        </div>
-    {/if}
+    <Info
+        bind:addingCalibrationPoint
+        bind:allFixturesCalibrated
+        bind:calibrateForOnePointSelectCalibrationPoint
+        bind:calibrationPoints
+        bind:calibrationPointsToCalibrate
+        bind:currentlyCalibrating
+        bind:fixtures
+        bind:fixturesToCalibrate
+        bind:lockMousePos
+        bind:mouseDragStart
+        bind:mousePos
+        bind:removingCalibrationPoint
+        bind:showCalibrationPoints
+        bind:showMousePosition
+    />
 </main>
 
 <style>
@@ -993,41 +859,6 @@
 
     .active-calibration-point {
         background-color: var(--main-green-color-transparent);
-    }
-
-    .info-box {
-        position: absolute;
-        pointer-events: none;
-        top: 0;
-        right: 0;
-        background-color: var(--overlay);
-        padding: 8px;
-        border-radius: 6px;
-        text-align: right;
-    }
-
-    .tooltip {
-        position: absolute;
-        pointer-events: none;
-        bottom: 10px;
-        left: 50%;
-        transform: translate(-50%, 0);
-        width: 90%;
-        border-radius: 20px;
-        background-color: var(--overlay);
-        padding: 10px;
-    }
-
-    .tooltip > div {
-        margin-top: 8px;
-    }
-
-    .info-box > div {
-        margin-bottom: 6px;
-    }
-
-    span.small {
-        font-size: 10px;
     }
 
     .video-cover-svg {
