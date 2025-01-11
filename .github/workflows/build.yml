@@ -47,3 +47,35 @@ jobs:
       - name: Build Följe
         run: wails build
         shell: bash
+
+      - name: Upload Build Artifacts
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-${{ matrix.build.platform }}
+          path: ./build/bin/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build-windows/amd64
+          path: ./windows-build-output/
+
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build-darwin/universal
+          path: ./macos-build-output/
+
+      - uses: pyTooling/Actions/releaser@r0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            ./windows-build-output/*
+            ./macos-build-output/*
+          rm: true
+          tag: nightly
