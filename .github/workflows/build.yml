@@ -82,5 +82,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload nightly ./windows-build-output/Följe.exe ./macos-build-output/Följe.app.zip --clobber
+          gh release upload latest ./windows-build-output/Följe.exe ./macos-build-output/Följe.app.zip --clobber --repo LogFlames/folje
         shell: bash
