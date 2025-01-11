@@ -5,6 +5,7 @@ go 1.22.0
 toolchain go1.23.3
 
 require (
+	github.com/fogleman/delaunay v0.0.0-20180910191513-63f09b4c883d
 	github.com/wailsapp/wails/v2 v2.9.2
 	gitlab.com/patopest/go-sacn v0.2.1
 )

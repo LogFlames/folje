@@ -147,13 +147,13 @@
         {#if Object.keys($fixtures).length === 0}
             <div>
                 No fixtures. Either load a configuration or add them by going
-                into Settings (top right cog) &gt; Fixtures &gt; Add fixture.
+                into Settings (top left cog) &gt; Fixtures &gt; Add fixture.
             </div>
         {/if}
         {#if Object.keys($calibrationPoints).length === 0}
             <div>
                 No calibration points. Either load a configuration or add them
-                by going into Settings (top right cog) &gt; Add calibration
+                by going into Settings (top left cog) &gt; Add calibration
                 point.
             </div>
         {/if}

@@ -34,6 +34,6 @@ export function SetSACNConfig(arg1) {
   return window['go']['main']['App']['SetSACNConfig'](arg1);
 }
 
-export function TypeExporter(arg1, arg2, arg3, arg4, arg5) {
-  return window['go']['main']['App']['TypeExporter'](arg1, arg2, arg3, arg4, arg5);
+export function TypeExporter(arg1, arg2, arg3, arg4, arg5, arg6) {
+  return window['go']['main']['App']['TypeExporter'](arg1, arg2, arg3, arg4, arg5, arg6);
 }

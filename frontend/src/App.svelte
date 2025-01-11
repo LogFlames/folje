@@ -49,13 +49,7 @@
     let allFixturesCalibrated = writable<boolean>(true);
     let calibrationPointOutline = writable<Point[]>([]);
     let calibrationPointCounter = writable<number>(0);
-    let calibrationPoints = writable<CalibrationPoints>({
-        "1aoeu": { id: "1aoeu", name: getNewCalibrationName(), x: 0.5, y: 0.5 },
-        "2aoeu": { id: "2aoeu", name: getNewCalibrationName(), x: 0.1, y: 0.5 },
-        "3aoeu": { id: "3aoeu", name: getNewCalibrationName(), x: 0.9, y: 0.5 },
-        "4aoeu": { id: "4aoeu", name: getNewCalibrationName(), x: 0.5, y: 0.1 },
-        "5aoeu": { id: "5aoeu", name: getNewCalibrationName(), x: 0.5, y: 0.9 },
-    });
+    let calibrationPoints = writable<CalibrationPoints>({});
 
     let addingCalibrationPoint = false;
     let removingCalibrationPoint = false;
@@ -186,12 +180,22 @@
     }
 
     function removeCalibrationPoint() {
+        if (Object.keys(get(calibrationPoints)).length === 0) {
+            App.AlertDialog("No calibration points", "Nothing to remove, as there are no calibration points.");
+            return;
+        }
+
         hideAllSettings = true;
         showCalibrationPoints = true;
         removingCalibrationPoint = true;
     }
 
     function calibrateFixtureForOnePoint(fixture_id: string) {
+        if (Object.keys(get(calibrationPoints)).length === 0) {
+            App.AlertDialog("No calibration points", "You need to add calibration points first.");
+            return;
+        }
+
         hideAllSettings = true;
         showCalibrationPoints = true;
         calibrateForOnePointSelectCalibrationPoint = true;
@@ -209,6 +213,11 @@
         fixture_id: string,
         calibration_points_missing: string[],
     ) {
+        if (calibration_points_missing.length === 0) {
+            App.AlertDialog("No calibration points missing", `The fixture '${get(fixtures)[fixture_id].name}' has all calibration points.`);
+            return;
+        }
+
         hideAllSettings = true;
         showCalibrationPoints = true;
 
@@ -221,6 +230,11 @@
     }
 
     function calibrateFixtureForAllPoints(fixture_id: string) {
+        if (Object.keys(get(calibrationPoints)).length === 0) {
+            App.AlertDialog("No calibration points", "You need to add calibration points first.");
+            return;
+        }
+
         hideAllSettings = true;
         showCalibrationPoints = true;
 
@@ -535,6 +549,8 @@
                 Math.floor(pan),
                 Math.floor(tilt),
             );
+        } else {
+            App.SetMouseForAllFixtures(get(mousePos).x, get(mousePos).y);
         }
     }
 

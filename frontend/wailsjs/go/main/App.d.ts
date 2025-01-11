@@ -18,4 +18,4 @@ export function SetPanTiltForFixture(arg1:string,arg2:number,arg3:number):Promis
 
 export function SetSACNConfig(arg1:main.SACNConfig):Promise<void>;
 
-export function TypeExporter(arg1:main.Point,arg2:main.CalibrationPoint,arg3:main.CalibratedCalibrationPoint,arg4:main.Fixture,arg5:main.SACNConfig):Promise<void>;
+export function TypeExporter(arg1:main.CalibrationPoint,arg2:main.CalibratedCalibrationPoint,arg3:main.Fixture,arg4:main.SACNConfig,arg5:main.DMXData,arg6:main.Point):Promise<void>;

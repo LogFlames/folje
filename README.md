@@ -17,6 +17,11 @@ If you have a fixture without fine pan/tilt leave those addresses as `0`. Only a
 
 ### sACN configuration
 
+## TODOs
+
+- Increase efficiency of the locate point function for the linear interpolation
+- Add save/load functionality
+
 ## Build
 
 This is build using [Go](https://go.dev/), [Wails](https://wails.io/) and [Svelte](https://svelte.dev/). To build the project, [install wails](https://wails.io/docs/gettingstarted/installation) and run `wails build`.

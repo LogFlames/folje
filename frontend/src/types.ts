@@ -46,3 +46,8 @@ export interface SACNConfig {
     multicast: boolean;
     destinations: string[];
 }
+
+export interface CalibratingFixture {
+        fixture_id: string;
+        calibration_point_id: string;
+    }
