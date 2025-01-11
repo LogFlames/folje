@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { type Writable } from "svelte/store";
-    import type { CalibrationPoint, Fixture } from "./types";
-    import { v4 as uuidv4 } from "uuid";
     import { createEventDispatcher } from "svelte";
+    import { type Writable } from "svelte/store";
+    import { v4 as uuidv4 } from "uuid";
     import * as App from "../wailsjs/go/main/App";
+    import type { CalibrationPoint, Fixture } from "./types";
 
     export let fixtures: Writable<{ [id: string]: Fixture }>;
     export let calibrationPoints: Writable<{ [id: string]: CalibrationPoint }>;
@@ -17,7 +17,7 @@
             "Delete fixture",
             `Are you sure you want to delete '${$fixtures[id].name}'`,
         ).then((value) => {
-            if (value === "Cancel") {
+            if (value !== "Yes" && value !== "Ok") {
                 return;
             }
 
@@ -282,14 +282,6 @@
         text-align: left;
     }
 
-    .overlay-content {
-        background: var(--secondary-bg-color);
-        padding: 20px;
-        border-radius: 6px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        text-align: center;
-    }
-
     .side-by-side-holder {
         display: flex;
         justify-content: space-between;
@@ -308,7 +300,8 @@
     }
 
     .fixture-list-scroll {
-        overflow-y: scroll;
+        overflow-y: auto;
+        overflow-x: visible;
         max-height: 60vh;
     }
 
@@ -318,7 +311,6 @@
 
     .fixture-settings-button {
         margin: 4px 0;
-        padding: 10px;
     }
 
     .remove-fixture-button {

@@ -1,16 +1,25 @@
 <script lang="ts">
+    import {
+        SvelteToast,
+        toast,
+        type SvelteToastOptions,
+    } from "@zerodevx/svelte-toast";
     import { onMount } from "svelte";
-    import { writable, get } from "svelte/store";
+    import { get, writable } from "svelte/store";
+    import { v4 as uuidv4 } from "uuid";
+    import * as App from "../wailsjs/go/main/App";
+    import { main } from "../wailsjs/go/models";
     import FixtureConfiguration from "./FixtureConfiguration.svelte";
+    import SACNConfiguration from "./SACNConfiguration.svelte";
     import type {
-        Fixture,
         CalibrationPoint,
+        CalibrationPoints,
+        Fixture,
+        Fixtures,
         MousePos,
         Point,
-        CalibrationPoints,
-        Fixtures,
+        SACNConfig,
     } from "./types";
-    import { v4 as uuidv4 } from "uuid";
     import {
         calcPan,
         calcTilt,
@@ -18,14 +27,6 @@
         convertFixturesToGo,
         convexHull,
     } from "./utils";
-    import {
-        toast,
-        SvelteToast,
-        type SvelteToastOptions,
-    } from "@zerodevx/svelte-toast";
-    import { main } from "../wailsjs/go/models";
-    import * as App from "../wailsjs/go/main/App";
-    import { detach } from "svelte/internal";
 
     interface CalibratingFixture {
         fixture_id: string;
@@ -45,12 +46,11 @@
     let deviceInfos = writable<MediaDeviceInfo[]>([]);
     let stream = writable<MediaStream>();
 
-    let notificationHolderElement: HTMLDivElement;
-
     let mousePos = writable<MousePos>({ x: 0, y: 0 });
     let mouseDragStart = writable<MousePos>(null);
 
-    let showFixtures = false;
+    let showFixtureConfiguration = false;
+    let showSACNConfiguration = false;
     let fixtures = writable<Fixtures>({});
     let allFixturesCalibrated = writable<boolean>(true);
 
@@ -81,6 +81,25 @@
 
     let currentlyCalibrating = writable<CalibratingFixture | null>(null);
 
+    let sacnConfig = writable<SACNConfig>(null);
+    let sacnConfigDirty = false;
+
+    onMount(() => {
+        App.GetSACNConfig().then((sacnConfigFromApp) => {
+            sacnConfig.set({
+                ipAddress: sacnConfigFromApp.IpAddress,
+                possibleIdAddresses: sacnConfigFromApp.PossibleIpAddresses,
+                fps: sacnConfigFromApp.Fps,
+                multicast: sacnConfigFromApp.Multicast,
+                destinations: sacnConfigFromApp.Destinations,
+            });
+        });
+    });
+
+    onMount(() => {
+        getStream().then(getDevices).then(gotDevices);
+    });
+
     const notificationOptions: SvelteToastOptions = {};
 
     const toggleShowMousePosition = () => {
@@ -91,17 +110,17 @@
         showCalibrationPoints = !showCalibrationPoints;
     };
 
-    const toggleShowFixtures = () => {
-        showFixtures = !showFixtures;
+    const toggleShowFixtureConfiguration = () => {
+        showFixtureConfiguration = !showFixtureConfiguration;
+    };
+
+    const toggleShowSACNConfiguration = () => {
+        showSACNConfiguration = !showSACNConfiguration;
     };
 
     const toggleShowSettingsMenu = () => {
         showSettingsMenu = !showSettingsMenu;
     };
-
-    onMount(() => {
-        getStream().then(getDevices).then(gotDevices);
-    });
 
     function getNewCalibrationName() {
         calibrationPointCounter.update((value) => {
@@ -211,8 +230,10 @@
                 currentlyCalibrating.set(null);
                 fixturesToCalibrate.set([]);
                 calibrationPointsToCalibrate.set([]);
-            } else if (showFixtures) {
-                showFixtures = false;
+            } else if (showFixtureConfiguration) {
+                showFixtureConfiguration = false;
+            } else if (showSACNConfiguration) {
+                showSACNConfiguration = false;
             } else if (showSettingsMenu) {
                 showSettingsMenu = false;
             } else {
@@ -502,17 +523,17 @@
             (option) => option.text === p_stream.getVideoTracks()[0].label,
         );
         videoElement.srcObject = p_stream;
+
+        setTimeout(() => {
+            calculateVideoSize();
+        }, 100);
     }
 
     function handleError(error) {
         console.error("Error: ", error);
     }
 
-    function handleMouseMove(event: MouseEvent) {
-        if (lockMousePos) {
-            return;
-        }
-
+    function calculateVideoSize() {
         const videoWidth = videoElement.videoWidth;
         const videoHeight = videoElement.videoHeight;
         const videoAspectRatio = videoWidth / videoHeight;
@@ -541,6 +562,14 @@
 
         videoStartX = rect.left + offsetX;
         videoStartY = rect.top + offsetY;
+    }
+
+    function handleMouseMove(event: MouseEvent) {
+        if (lockMousePos) {
+            return;
+        }
+
+        calculateVideoSize();
 
         const x = Math.max(
             Math.min((event.clientX - videoStartX) / videoRenderedWidth, 1),
@@ -559,8 +588,12 @@
         ) {
             let fixture = get(fixtures)[get(currentlyCalibrating).fixture_id];
             let pan = calcPan(fixture, get(mousePos), get(mouseDragStart));
-            let tilt = calcPan(fixture, get(mousePos), get(mouseDragStart));
-            App.SendPanTilt(get(currentlyCalibrating).fixture_id, Math.floor(pan), Math.floor(tilt));
+            let tilt = calcTilt(fixture, get(mousePos), get(mouseDragStart));
+            App.SetPanTiltForFixture(
+                get(currentlyCalibrating).fixture_id,
+                Math.floor(pan),
+                Math.floor(tilt),
+            );
         }
     }
 </script>
@@ -672,7 +705,7 @@
         class="settings {!showSettingsMenu || hideAllSettings ? 'hidden' : ''}"
     >
         <select bind:this={videoSelect} on:change={getStream}>
-            {#each $deviceInfos as deviceInfo, index (deviceInfo.deviceId)}
+            {#each $deviceInfos as deviceInfo, index}
                 {#if deviceInfo.kind === "videoinput"}
                     <option value={deviceInfo.deviceId}
                         >{deviceInfo.label || `Camera ${index + 1}`}</option
@@ -680,10 +713,12 @@
                 {/if}
             {/each}
         </select>
-        <button on:click={toggleShowFixtures}> Fixtures </button>
-        {#if showFixtures}
+        <button on:click={toggleShowFixtureConfiguration}>
+            Fixture Config
+        </button>
+        {#if showFixtureConfiguration}
             <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <div class="overlay" on:click={toggleShowFixtures}>
+            <div class="overlay" on:click={toggleShowFixtureConfiguration}>
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <div on:click|stopPropagation>
                     <FixtureConfiguration
@@ -706,6 +741,27 @@
                             );
                         }}
                     />
+                </div>
+            </div>
+        {/if}
+        <button on:click={toggleShowSACNConfiguration}> sACN Config </button>
+        {#if showSACNConfiguration}
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <div
+                class="overlay"
+                on:click={() => {
+                    if (sacnConfigDirty) {
+                        App.AlertDialog(
+                            "Unsaved changes",
+                            "You have unsaved changes. Either apply or cancel them before closing this window.",
+                        );
+                    } else {
+                        toggleShowSACNConfiguration();
+                    }
+                }}
+            >
+                <div on:click|stopPropagation>
+                    <SACNConfiguration bind:sacnConfig bind:sacnConfigDirty />
                 </div>
             </div>
         {/if}
@@ -864,7 +920,6 @@
             {/if}
         </div>
     {/if}
-    <div class="notifications-div" bind:this={notificationHolderElement}></div>
 </main>
 
 <style>

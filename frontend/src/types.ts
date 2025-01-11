@@ -38,3 +38,11 @@ export interface MousePos {
 
 export type Fixtures = { [id: string]: Fixture };
 export type CalibrationPoints = { [id: string]: CalibrationPoint };
+
+export interface SACNConfig {
+    ipAddress: string;
+    possibleIdAddresses: string[];
+    fps: number;
+    multicast: boolean;
+    destinations: string[];
+}

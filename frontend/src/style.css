@@ -54,9 +54,9 @@ body {
     display: none !important;
 }
 
-button {
+button, select {
     display: inline-block;
-    padding: 12px 24px;
+    padding: 8px 12px;
     font-size: 16px;
     font-weight: 600;
     color: var(--main-text-color);
@@ -67,25 +67,12 @@ button {
     transition: all 0.3s ease;
 }
 
-button:hover {
+button:hover, select:hover {
     background-color: var(--main-button-hover-color);
 }
 
-button:active {
+button:active, select:active {
     background-color: var(--main-button-active-color);
-}
-
-select {
-    display: inline-block;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--main-text-color);
-    background-color: var(--main-button-color);
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s ease;
 }
 
 label, div, select, button, .info-box {
@@ -95,4 +82,12 @@ label, div, select, button, .info-box {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.overlay-content {
+    background: var(--secondary-bg-color);
+    padding: 20px;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
 }

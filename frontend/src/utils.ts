@@ -1,5 +1,5 @@
 import { main } from "../wailsjs/go/models";
-import type { Fixture, Point, MousePos, CalibrationPoint, Fixtures, CalibrationPoints } from "./types";
+import type { CalibrationPoint, CalibrationPoints, Fixture, Fixtures, MousePos, Point } from "./types";
 
 export function convexHull(points: CalibrationPoint[]): Point[] {
     if (points.length < 3) return points;
@@ -40,7 +40,7 @@ export function convexHull(points: CalibrationPoint[]): Point[] {
 export function calcTilt(fixture: Fixture, mousePos: MousePos, mouseDragStart: MousePos): number {
     let y = mousePos.y;
     if (mouseDragStart !== null) {
-        y = mouseDragStart.y + (mousePos.y - mouseDragStart.y) * 0.01;
+        y = mouseDragStart.y + (mousePos.y - mouseDragStart.y) * 0.05;
     }
     return fixture.minTilt + y * (fixture.maxTilt - fixture.minTilt);
 }
@@ -48,7 +48,7 @@ export function calcTilt(fixture: Fixture, mousePos: MousePos, mouseDragStart: M
 export function calcPan(fixture: Fixture, mousePos: MousePos, mouseDragStart: MousePos): number {
     let x = mousePos.x;
     if (mouseDragStart !== null) {
-        x = mouseDragStart.x + (mousePos.x - mouseDragStart.x) * 0.01;
+        x = mouseDragStart.x + (mousePos.x - mouseDragStart.x) * 0.05;
     }
     return fixture.minPan + x * (fixture.maxPan - fixture.minPan);
 }
@@ -72,10 +72,10 @@ export function convertFixturesToGo(fixtures: Fixtures, calibrationPoints: Calib
             Id: fixture.id,
             Name: fixture.name,
             Universe: fixture.universe,
-            PanAddress: fixture.panAddress,
-            FinePanAddress: fixture.finePanAddress,
-            TiltAddress: fixture.tiltAddress,
-            FineTiltAddress: fixture.fineTiltAddress,
+            PanAddress: fixture.panAddress - 1,
+            FinePanAddress: fixture.finePanAddress - 1,
+            TiltAddress: fixture.tiltAddress - 1,
+            FineTiltAddress: fixture.fineTiltAddress - 1,
             Calibration: goCalibration
         });
     }

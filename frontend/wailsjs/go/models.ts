@@ -92,6 +92,26 @@ export namespace main {
 	        this.Y = source["Y"];
 	    }
 	}
+	export class SACNConfig {
+	    IpAddress: string;
+	    PossibleIpAddresses: string[];
+	    Fps: number;
+	    Multicast: boolean;
+	    Destinations: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new SACNConfig(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.IpAddress = source["IpAddress"];
+	        this.PossibleIpAddresses = source["PossibleIpAddresses"];
+	        this.Fps = source["Fps"];
+	        this.Multicast = source["Multicast"];
+	        this.Destinations = source["Destinations"];
+	    }
+	}
 
 }
 
