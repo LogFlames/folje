@@ -48,6 +48,11 @@ jobs:
         run: wails build
         shell: bash
 
+      - name: Compress mac app
+        if: matrix.build.os == 'macos-latest'
+        run: zip -r -X ./build/bin/Följe.app.zip ./build/bin/Följe.app
+        shell: bash
+
       - name: Upload Build Artifacts
         if: success()
         uses: actions/upload-artifact@v3
@@ -71,11 +76,6 @@ jobs:
           name: build-macos-latest
           path: ./macos-build-output/
 
-      - uses: pyTooling/Actions/releaser@r0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: |
-            ./windows-build-output/*
-            ./macos-build-output/*
-          rm: false
-          tag: nightly
+      - name: Upload new assets
+        run: |
+          gh release upload nightly ./windows-build-output/Följe.exe ./macos-build-output/Följe.app.zip --clobber
