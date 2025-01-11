@@ -13,6 +13,7 @@ It started as a python-script written in 6h for Kårspexet 23/24 by Elias Lundel
     - [Fixtures](#fixtures)
     - [Calibration points](#calibration-points)
     - [sACN configuration](#sacn-configuration)
+    - [Locking Position](#locking-position)
 - [TODOs and known bugs](#todos-and-known-bugs)
   - [TODOs](#todos)
   - [Known Bugs](#known-bugs)
