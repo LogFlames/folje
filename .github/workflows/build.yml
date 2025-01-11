@@ -47,3 +47,15 @@ jobs:
       - name: Build Följe
         run: wails build
         shell: bash
+
+      - name: Update Nightly Release
+        uses: andelf/nightly-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nightly
+          name: 'Följe Nightly Release $$'
+          prerelease: true
+          body: 'This is a nightly build of Följe. Bugs and unfinished features are expected.'
+          files: |
+            ./build/bin/*
