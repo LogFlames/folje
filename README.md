@@ -46,8 +46,6 @@ Around the outer edge of the calibration points there is a green outline. The fi
 
 Only fixtures which are calibrated for all existing calibration ponits will get pan/tilt data. If you have uncalibrated fixtures there will be a warning in the status window and in the fixture settings you can choose to calibrate it only for the points which it is missing. 
 
-If you have a fixture without fine pan/tilt leave those addresses as `0`. Only addresses that are in the range `[1, 512]` will be used.
-
 - `name`: A name for the fixture. This is only for you to know which one it is. It is possible for multiple fixtures to have the same name.
 - `universe`: Which DMX universe this fixtures pan/tilt should be sent to.
 - `panAddress`: The DMX address for the pan channel.
