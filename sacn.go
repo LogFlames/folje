@@ -88,7 +88,7 @@ func (a *App) ensureSACNUniverses() error {
 		return err
 	}
 
-	for uni := range a.universeDMXData {
+	for uni := range a.activeUniverses {
 		inUse := false
 		for _, fixture := range a.fixtures {
 			if uni == fixture.Universe {
