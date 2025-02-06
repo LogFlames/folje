@@ -75,13 +75,6 @@ Theoretically the settings could be more fine-grained (multicast/destination per
 
 When tracking someone you might want to move the mouse without having the fixtures follow (to change settings or interact with other programs). This can be done by clicking anywhere on the video. A red dot with a red ring around it will appear at the locked position. Clicking anywhere on the video will unlock it and it will resume following the mouse.
 
-## TODOs and known bugs
-
-### TODOs
-
-- Increase efficiency of the locate point function for the linear interpolation
-- Add save/load functionality
-
 ## Build
 
 This is build using [Go](https://go.dev/), [Wails](https://wails.io/) and [Svelte](https://svelte.dev/). To build the project, install [go](https://go.dev/doc/install), [wails](https://wails.io/docs/gettingstarted/installation), [node](https://nodejs.org/en/download) and run `wails build` from the root of the project:
