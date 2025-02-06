@@ -36,7 +36,7 @@ Demo video //TODO
 
 When configuring and calibrating you can generally abort an operation by pressing ESC. Please also read the status info in the top-right corner as well as additional information in the lower middle of the screen.
 
-When calibrating a fixture your mouse position will be converted to a pan/tilt value absolutely (top left is 0%/0%, bottom right is 100%/100%). If you wish finer control you can press and hold SPACE, your mouse movement will now be a small offset from where you started holding SPACE. Make sure to hold press when you click so that your desired pan/tilt is saved. 
+When calibrating a fixture your mouse position will be converted to a pan/tilt value absolutely (top left is 0%/0%, bottom right is 100%/100%). If you wish finer control you can press and hold SHIFT, your mouse movement will now be a small offset from where you started holding SHIFT. Make sure to hold press when you click so that your desired pan/tilt is saved. 
 
 A tip is to have a person walk around the stage and position the calibration points at their feet. This will make it easier to hit the correct depth as aiming for the middle of the spot will be inconsistent when things (backdrops, etc) are blocking the light. You can however allways trust the floor to not move. 
 

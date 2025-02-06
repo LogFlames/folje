@@ -253,7 +253,7 @@
     }
 
     function handleKeyup(event: KeyboardEvent) {
-        if (event.key === " " || event.key === "Escape") {
+        if (event.key === "Shift" || event.key === "Escape") {
             event.preventDefault();
         }
 
@@ -295,13 +295,13 @@
             } else {
                 showSettingsMenu = true;
             }
-        } else if (event.key === " ") {
+        } else if (event.key === "Shift") {
             mouseDragStart.set(null);
         }
     }
 
     function handleKeydown(event: KeyboardEvent) {
-        if (event.key === " " || event.key === "Escape") {
+        if (event.key === "Shift" || event.key === "Escape") {
             event.preventDefault();
         }
 
@@ -309,7 +309,7 @@
             return;
         }
 
-        if (event.key === " ") {
+        if (event.key === "Shift") {
             mouseDragStart.set(get(mousePos));
         }
     }
