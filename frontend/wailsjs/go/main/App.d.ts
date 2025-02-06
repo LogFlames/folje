@@ -8,6 +8,10 @@ export function ConfirmDialog(arg1:string,arg2:string):Promise<string>;
 
 export function GetSACNConfig():Promise<main.SACNConfig>;
 
+export function LoadFile():Promise<string>;
+
+export function SaveFile(arg1:string):Promise<void>;
+
 export function SetCalibrationPoints(arg1:{[key: string]: main.CalibrationPoint}):Promise<void>;
 
 export function SetFixtures(arg1:{[key: string]: main.Fixture}):Promise<void>;

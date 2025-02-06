@@ -14,6 +14,14 @@ export function GetSACNConfig() {
   return window['go']['main']['App']['GetSACNConfig']();
 }
 
+export function LoadFile() {
+  return window['go']['main']['App']['LoadFile']();
+}
+
+export function SaveFile(arg1) {
+  return window['go']['main']['App']['SaveFile'](arg1);
+}
+
 export function SetCalibrationPoints(arg1) {
   return window['go']['main']['App']['SetCalibrationPoints'](arg1);
 }

@@ -12,6 +12,7 @@
     import FixtureConfiguration from "./FixtureConfiguration.svelte";
     import Info from "./Info.svelte";
     import SACNConfiguration from "./SACNConfiguration.svelte";
+    import Config from "./Config.svelte";
     import type {
         CalibratingFixture,
         CalibrationPoint,
@@ -713,6 +714,7 @@
     <div
         class="settings {!showSettingsMenu || hideAllSettings ? 'hidden' : ''}"
     >
+    <Config bind:fixtures bind:calibrationPoints bind:sacnConfig></Config>
         <select bind:this={videoSelect} on:change={getStream}>
             {#each $deviceInfos as deviceInfo, index}
                 {#if deviceInfo.kind === "videoinput"}

@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 	"net"
+	"os"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 func (a *App) findPossibleIPAddresses() {
@@ -41,4 +44,51 @@ func (a *App) findPossibleIPAddresses() {
 		return
 	}
 	a.sacnConfig.IpAddress = possibleAddresses[0]
+}
+
+func (a *App) LoadFile() string {
+	file, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Load Följe Configuration",
+		Filters: []runtime.FileFilter{
+			{
+				DisplayName: "Följe Configurations (*.fconf)",
+				Pattern:     "*.fconf",
+			},
+		}})
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return "{}"
+	}
+
+	data, err := os.ReadFile(file)
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return "{}"
+	}
+
+	return string(data)
+}
+
+func (a *App) SaveFile(content string) {
+	file, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		Title: "Load Följe Configuration",
+		Filters: []runtime.FileFilter{
+			{
+				DisplayName: "Följe Configurations (*.fconf)",
+				Pattern:     "*.fconf",
+			},
+		},
+		DefaultFilename: "conf.fconf",
+	})
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return
+	}
+
+	err = os.WriteFile(file, []byte(content), 0644)
+
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return
+	}
 }
