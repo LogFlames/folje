@@ -348,6 +348,8 @@
             calibrateForOnePointSelectCalibrationPoint = false;
             event.stopPropagation();
         }
+
+        handleMouseMove(event);
     }
 
     function handleClickOnVideo(event: MouseEvent) {
@@ -445,6 +447,8 @@
             lockMousePos = true;
             showNotification("Locked mouse");
         }
+
+        handleMouseMove(event);
     }
 
     function moveToNextFixtureOrCalibrationPointOrCancel() {

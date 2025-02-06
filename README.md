@@ -82,10 +82,6 @@ When tracking someone you might want to move the mouse without having the fixtur
 - Increase efficiency of the locate point function for the linear interpolation
 - Add save/load functionality
 
-### Known Bugs
-
-- When in 'calibrate all'-mode, after you click to confirm a calibration, the fixture moves up to 0, 0 until you move the mouse at which point it snaps back to absolute pan/tilt-mode. Should be solved by sending a 'App.SetPanTiltForFixture' directly when setting the new 'currentlyCalibrating' struct in the clickHandeler.
-
 ## Build
 
 This is build using [Go](https://go.dev/), [Wails](https://wails.io/) and [Svelte](https://svelte.dev/). To build the project, install [go](https://go.dev/doc/install), [wails](https://wails.io/docs/gettingstarted/installation), [node](https://nodejs.org/en/download) and run `wails build` from the root of the project:
