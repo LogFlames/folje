@@ -33,8 +33,9 @@
         let content = JSON.stringify({
             fixtures: get(fixtures),
             calibrationPoints: get(calibrationPoints),
-            sacnConfig: get(sacnConfig)
-        })
+            sacnConfig: get(sacnConfig),
+            date: String(new Date())
+        });
 
         App.SaveFile(content).then(() => {
             App.AlertDialog("Save Config", "Saved configuration to file.");
