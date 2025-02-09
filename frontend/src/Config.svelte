@@ -19,10 +19,6 @@
                 calibrationPoints.set(obj["calibrationPoints"]);
             }
 
-            if (obj["sacnConfig"] !== undefined) {
-                sacnConfig.set(obj["sacnConfig"]);
-            }
-
             App.AlertDialog("Loaded Config", "Loaded configuration from file.");
         }).catch(() => {
             App.AlertDialog("Load Config Error", "Error while trying to load configuration from file.");
@@ -33,7 +29,6 @@
         let content = JSON.stringify({
             fixtures: get(fixtures),
             calibrationPoints: get(calibrationPoints),
-            sacnConfig: get(sacnConfig),
             date: String(new Date())
         });
 
