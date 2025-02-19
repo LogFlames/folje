@@ -62,7 +62,7 @@ func (a *App) ensureSACNSender() error {
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
 		a.sender = nil
-		a.AlertDialog("sACN sender error", err.Error())
+		// a.AlertDialog("sACN sender error", err.Error())
 		return err
 	}
 
@@ -151,5 +151,7 @@ func (a *App) SetSACNConfig(sacnConfig SACNConfig) {
 }
 
 func (a *App) GetSACNConfig() SACNConfig {
+	a.findPossibleIPAddresses()
+
 	return *a.sacnConfig
 }

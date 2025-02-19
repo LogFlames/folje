@@ -54,7 +54,23 @@
             return sacnConfig;
         });
 
-        sacnConfigDirty = true;
+        sacnConfigUpdated();
+    }
+
+    function refreshIPAdresses() {
+        App.GetSACNConfig().then((sacnConfigFromApp) => {
+            sacnConfig.update((oldSacnConfig) => {
+                return {
+                    ipAddress: sacnConfigFromApp.IpAddress,
+                    possibleIdAddresses: sacnConfigFromApp.PossibleIpAddresses,
+                    fps: oldSacnConfig.fps,
+                    multicast: oldSacnConfig.multicast,
+                    destinations: sacnConfigFromApp.Destinations,
+                };
+            });
+        });
+
+        applySACNConfig();
     }
 </script>
 
@@ -75,6 +91,9 @@
                         {/each}
                     </select>
                 </td>
+            </tr>
+            <tr>
+                <button on:click={refreshIPAdresses}> Refresh </button>
             </tr>
             <tr>
                 <td>FPS:</td>
@@ -126,8 +145,12 @@
         <div class="sacn-settings-separator"></div>
         {#if sacnConfigDirty}
             <div>
-                <button class="sacn-cancel-button" on:click={cancelSACNConfig}>Cancel</button>
-                <button class="sacn-apply-button" on:click={applySACNConfig}>Apply</button>
+                <button class="sacn-cancel-button" on:click={cancelSACNConfig}
+                    >Cancel</button
+                >
+                <button class="sacn-apply-button" on:click={applySACNConfig}
+                    >Apply</button
+                >
             </div>
         {/if}
     </div>
