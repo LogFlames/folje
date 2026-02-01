@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/fogleman/delaunay"
@@ -32,6 +34,7 @@ func NewApp() *App {
 }
 
 func (a *App) startup(ctx context.Context) {
+	LogInfo("App startup beginning")
 	a.ctx = ctx
 
 	a.activeUniverses = make(map[uint16]chan<- packet.SACNPacket)
@@ -52,12 +55,19 @@ func (a *App) startup(ctx context.Context) {
 	a.findPossibleIPAddresses()
 
 	a.sacnWorkerWG.Add(1)
+	LogInfo("Starting sACN worker goroutine")
 	go a.sacnWorker()
+
+	LogInfo("App startup complete")
 }
 
 func (a *App) shutdown(ctx context.Context) {
-	a.sacnStopLoop <- true
+	LogInfo("App shutdown beginning")
+	if a.sacnStopLoop != nil {
+		a.sacnStopLoop <- true
+	}
 	a.sacnWorkerWG.Wait()
+	LogInfo("App shutdown complete")
 }
 
 func (a *App) AlertDialog(title string, message string) {
@@ -190,4 +200,44 @@ func (a *App) SetPanTiltForFixture(fixtureId string, pan int, tilt int) {
 	}
 
 	a.universeDMXData[fixture.Universe] = data
+}
+
+type LastSessionInfo struct {
+	HasLastSession bool   `json:"hasLastSession"`
+	ConfigPath     string `json:"configPath"`
+	ConfigName     string `json:"configName"`
+	IpAddress      string `json:"ipAddress"`
+	IpAddressValid bool   `json:"ipAddressValid"`
+}
+
+func (a *App) GetLastSessionInfo() LastSessionInfo {
+	prefs := loadPreferences()
+
+	// No last session if no config path saved
+	if prefs.LastConfigPath == "" {
+		return LastSessionInfo{HasLastSession: false}
+	}
+
+	// Check if config file still exists
+	if _, err := os.Stat(prefs.LastConfigPath); os.IsNotExist(err) {
+		return LastSessionInfo{HasLastSession: false}
+	}
+
+	// Check if the saved IP address is still available
+	// If no IP was saved, consider it valid (will use default)
+	ipValid := prefs.LastIpAddress == ""
+	for _, ip := range a.sacnConfig.PossibleIpAddresses {
+		if ip == prefs.LastIpAddress {
+			ipValid = true
+			break
+		}
+	}
+
+	return LastSessionInfo{
+		HasLastSession: true,
+		ConfigPath:     prefs.LastConfigPath,
+		ConfigName:     filepath.Base(prefs.LastConfigPath),
+		IpAddress:      prefs.LastIpAddress,
+		IpAddressValid: ipValid,
+	}
 }

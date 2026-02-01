@@ -42,7 +42,7 @@ export namespace main {
 	    FinePanAddress: number;
 	    TiltAddress: number;
 	    FineTiltAddress: number;
-	    Calibration: {[key: string]: CalibratedCalibrationPoint};
+	    Calibration: Record<string, CalibratedCalibrationPoint>;
 	
 	    static createFrom(source: any = {}) {
 	        return new Fixture(source);
@@ -77,6 +77,26 @@ export namespace main {
 		    }
 		    return a;
 		}
+	}
+	export class LastSessionInfo {
+	    hasLastSession: boolean;
+	    configPath: string;
+	    configName: string;
+	    ipAddress: string;
+	    ipAddressValid: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new LastSessionInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.hasLastSession = source["hasLastSession"];
+	        this.configPath = source["configPath"];
+	        this.configName = source["configName"];
+	        this.ipAddress = source["ipAddress"];
+	        this.ipAddressValid = source["ipAddressValid"];
+	    }
 	}
 	export class Point {
 	    X: number;

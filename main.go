@@ -13,6 +13,14 @@ import (
 var assets embed.FS
 
 func main() {
+	// Initialize logging FIRST
+	if err := InitLogger(); err != nil {
+		println("Warning: Could not initialize file logging:", err.Error())
+	}
+	defer CloseLogger()
+
+	LogInfo("=== Folje Application Starting ===")
+
 	// Create an instance of the app structure
 	app := NewApp()
 
@@ -40,6 +48,8 @@ func main() {
 	})
 
 	if err != nil {
-		println("Error:", err.Error())
+		LogError("Wails error: %s", err.Error())
 	}
+
+	LogInfo("=== Folje Application Exiting ===")
 }

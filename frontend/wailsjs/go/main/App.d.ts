@@ -6,15 +6,19 @@ export function AlertDialog(arg1:string,arg2:string):Promise<void>;
 
 export function ConfirmDialog(arg1:string,arg2:string):Promise<string>;
 
+export function GetLastSessionInfo():Promise<main.LastSessionInfo>;
+
 export function GetSACNConfig():Promise<main.SACNConfig>;
 
 export function LoadFile():Promise<string>;
 
+export function LoadFileFromPath(arg1:string):Promise<string>;
+
 export function SaveFile(arg1:string):Promise<void>;
 
-export function SetCalibrationPoints(arg1:{[key: string]: main.CalibrationPoint}):Promise<void>;
+export function SetCalibrationPoints(arg1:Record<string, main.CalibrationPoint>):Promise<void>;
 
-export function SetFixtures(arg1:{[key: string]: main.Fixture}):Promise<void>;
+export function SetFixtures(arg1:Record<string, main.Fixture>):Promise<void>;
 
 export function SetMouseForAllFixtures(arg1:number,arg2:number):Promise<void>;
 

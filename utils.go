@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net"
 	"os"
 
@@ -26,7 +25,8 @@ func (a *App) findPossibleIPAddresses() {
 
 		addrs, err := iface.Addrs()
 		if err != nil {
-			log.Fatal(err)
+			LogError("Failed to get addresses for interface %s: %s", iface.Name, err.Error())
+			continue
 		}
 
 		// Iterate over the addresses and look for an IPv4 address
@@ -60,7 +60,29 @@ func (a *App) LoadFile() string {
 		return "{}"
 	}
 
+	// User cancelled the dialog
+	if file == "" {
+		return "{}"
+	}
+
 	data, err := os.ReadFile(file)
+	if err != nil {
+		runtime.LogError(a.ctx, err.Error())
+		return "{}"
+	}
+
+	// Save the config path to preferences
+	a.updateLastConfigPath(file)
+
+	return string(data)
+}
+
+func (a *App) LoadFileFromPath(path string) string {
+	if path == "" {
+		return "{}"
+	}
+
+	data, err := os.ReadFile(path)
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
 		return "{}"
@@ -71,7 +93,7 @@ func (a *App) LoadFile() string {
 
 func (a *App) SaveFile(content string) {
 	file, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
-		Title: "Load Följe Configuration",
+		Title: "Save Följe Configuration",
 		Filters: []runtime.FileFilter{
 			{
 				DisplayName: "Följe Configurations (*.fconf)",
@@ -85,10 +107,18 @@ func (a *App) SaveFile(content string) {
 		return
 	}
 
+	// User cancelled the dialog
+	if file == "" {
+		return
+	}
+
 	err = os.WriteFile(file, []byte(content), 0644)
 
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
 		return
 	}
+
+	// Save the config path to preferences
+	a.updateLastConfigPath(file)
 }

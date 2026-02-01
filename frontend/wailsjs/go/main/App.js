@@ -10,12 +10,20 @@ export function ConfirmDialog(arg1, arg2) {
   return window['go']['main']['App']['ConfirmDialog'](arg1, arg2);
 }
 
+export function GetLastSessionInfo() {
+  return window['go']['main']['App']['GetLastSessionInfo']();
+}
+
 export function GetSACNConfig() {
   return window['go']['main']['App']['GetSACNConfig']();
 }
 
 export function LoadFile() {
   return window['go']['main']['App']['LoadFile']();
+}
+
+export function LoadFileFromPath(arg1) {
+  return window['go']['main']['App']['LoadFileFromPath'](arg1);
 }
 
 export function SaveFile(arg1) {

@@ -31,6 +31,10 @@
         convexHull,
     } from "./utils";
 
+    // Last session restore dialog
+    let showRestoreDialog = false;
+    let lastSessionInfo: main.LastSessionInfo | null = null;
+
     let videoElement: HTMLVideoElement;
     let videoSelect: HTMLSelectElement;
 
@@ -98,11 +102,81 @@
                 multicast: sacnConfigFromApp.Multicast,
                 destinations: sacnConfigFromApp.Destinations,
             });
+
+            // Check for last session after sACN config is loaded
+            App.GetLastSessionInfo().then((info) => {
+                if (info.hasLastSession) {
+                    lastSessionInfo = info;
+                    showRestoreDialog = true;
+                }
+            });
         });
     });
 
+    function restoreLastSession() {
+        if (!lastSessionInfo) return;
+
+        App.LoadFileFromPath(lastSessionInfo.configPath).then((content) => {
+            let obj = JSON.parse(content);
+
+            if (obj["fixtures"] !== undefined) {
+                fixtures.set(obj["fixtures"]);
+            }
+
+            if (obj["calibrationPoints"] !== undefined) {
+                calibrationPoints.set(obj["calibrationPoints"]);
+            }
+
+            // Handle IP address
+            if (lastSessionInfo.ipAddress && lastSessionInfo.ipAddressValid) {
+                // Use the saved IP address
+                sacnConfig.update((config) => {
+                    if (config) {
+                        config.ipAddress = lastSessionInfo.ipAddress;
+                    }
+                    return config;
+                });
+                showNotification("Restored last session");
+            } else if (lastSessionInfo.ipAddress && !lastSessionInfo.ipAddressValid) {
+                // IP not available, show warning with fallback IP
+                const fallbackIp = get(sacnConfig)?.ipAddress || "unknown";
+                showNotification(
+                    `Last IP (${lastSessionInfo.ipAddress}) not available, using ${fallbackIp}`,
+                    7000,
+                );
+            } else {
+                // No saved IP, just restore config with default IP
+                showNotification("Restored last session");
+            }
+
+            // Always save current sACN config to update the IP in preferences
+            const config = get(sacnConfig);
+            if (config) {
+                App.SetSACNConfig({
+                    IpAddress: config.ipAddress,
+                    PossibleIpAddresses: config.possibleIdAddresses,
+                    Fps: config.fps,
+                    Multicast: config.multicast,
+                    Destinations: config.destinations,
+                });
+            }
+
+            showRestoreDialog = false;
+            lastSessionInfo = null;
+        }).catch(() => {
+            showNotification("Failed to restore last session");
+            showRestoreDialog = false;
+            lastSessionInfo = null;
+        });
+    }
+
+    function cancelRestoreLastSession() {
+        showRestoreDialog = false;
+        lastSessionInfo = null;
+    }
+
     onMount(() => {
-        getStream().then(getDevices).then(gotDevices);
+        getStream();
     });
 
     const toggleShowMousePosition = () => {
@@ -593,10 +667,14 @@
 
     function gotStream(p_stream) {
         stream.set(p_stream);
-        videoSelect.selectedIndex = [...videoSelect.options].findIndex(
-            (option) => option.text === p_stream.getVideoTracks()[0].label,
-        );
         videoElement.srcObject = p_stream;
+
+        getDevices().then((devices) => {
+            gotDevices(devices);
+            videoSelect.selectedIndex = [...videoSelect.options].findIndex(
+                (option) => option.text === p_stream.getVideoTracks()[0].label,
+            );
+        });
 
         setTimeout(() => {
             calculateVideoSize();
@@ -611,6 +689,31 @@
 <svelte:window on:keyup={handleKeyup} on:keydown={handleKeydown} />
 
 <SvelteToast />
+
+{#if showRestoreDialog && lastSessionInfo}
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <div class="overlay restore-dialog-overlay" on:click={cancelRestoreLastSession}>
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <div class="restore-dialog" on:click|stopPropagation>
+            <h2>Open last config?</h2>
+            <div class="restore-dialog-info">
+                <p><strong>Config:</strong> {lastSessionInfo.configName}</p>
+                {#if lastSessionInfo.ipAddress}
+                    <p>
+                        <strong>Previous IP:</strong> {lastSessionInfo.ipAddress}
+                        {#if !lastSessionInfo.ipAddressValid}
+                            <span class="ip-warning">(not available)</span>
+                        {/if}
+                    </p>
+                {/if}
+            </div>
+            <div class="restore-dialog-buttons">
+                <button class="primary-button" on:click={restoreLastSession}>Load Config</button>
+                <button on:click={cancelRestoreLastSession}>Cancel</button>
+            </div>
+        </div>
+    </div>
+{/if}
 
 <main>
     <div class="content" on:mousemove={handleMouseMove}>
@@ -927,5 +1030,55 @@
 
     .settings-separator {
         margin-top: 12px;
+    }
+
+    .restore-dialog-overlay {
+        z-index: 2000;
+    }
+
+    .restore-dialog {
+        background-color: var(--main-bg-color);
+        padding: 24px;
+        border-radius: 8px;
+        min-width: 300px;
+        max-width: 400px;
+    }
+
+    .restore-dialog h2 {
+        margin: 0 0 16px 0;
+        font-size: 1.25rem;
+    }
+
+    .restore-dialog-info {
+        margin-bottom: 20px;
+    }
+
+    .restore-dialog-info p {
+        margin: 8px 0;
+        word-break: break-all;
+    }
+
+    .ip-warning {
+        color: var(--main-red-color);
+        font-size: 0.9em;
+    }
+
+    .restore-dialog-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .restore-dialog-buttons button {
+        padding: 8px 16px;
+    }
+
+    .primary-button {
+        background-color: var(--main-green-color);
+        color: var(--main-bg-color);
+    }
+
+    .primary-button:hover {
+        background-color: var(--main-green-color-transparent);
     }
 </style>

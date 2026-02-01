@@ -23,7 +23,11 @@ func (a *App) sacnWorker() {
 			p := packet.NewDataPacket()
 			data := a.universeDMXData[uni]
 			p.SetData(data[:])
-			a.activeUniverses[uni] <- p
+			select {
+			case a.activeUniverses[uni] <- p:
+			default:
+				LogDebug("Channel full for universe %d", uni)
+			}
 		}
 	}
 
@@ -116,6 +120,12 @@ func (a *App) activateUniverse(uni uint16) {
 		return
 	}
 
+	if a.sender == nil {
+		LogError("Cannot activate universe %d: sender is nil", uni)
+		return
+	}
+
+	LogInfo("Activating universe %d", uni)
 	universe, err := a.sender.StartUniverse(uni)
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
@@ -133,12 +143,21 @@ func (a *App) deactiveUniverse(uni uint16) {
 		return
 	}
 
+	if a.sender == nil {
+		LogError("Cannot deactivate universe %d: sender is nil", uni)
+		return
+	}
+
+	LogInfo("Deactivating universe %d", uni)
 	a.sender.StopUniverse(uni)
 	delete(a.activeUniverses, uni)
 }
 
 func (a *App) SetSACNConfig(sacnConfig SACNConfig) {
 	a.sacnConfig = &sacnConfig
+
+	// Save the IP address to preferences
+	a.updateLastIpAddress(sacnConfig.IpAddress)
 
 	if a.sender != nil {
 		a.closeSACNSender()
