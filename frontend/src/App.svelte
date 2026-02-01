@@ -176,7 +176,10 @@
     }
 
     onMount(() => {
-        getStream();
+        getDevices().then((devices) => {
+            gotDevices(devices);
+            getStream();
+        });
     });
 
     const toggleShowMousePosition = () => {
