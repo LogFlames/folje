@@ -260,7 +260,7 @@
                     {/if}
                     <br />
                     <button
-                        class="fixture-settings-button remove-fixture-button"
+                        class="fixture-settings-button btn-danger"
                         on:click={() => removeFixture(selectedId)}
                         >Remove Fixture</button
                     >
@@ -273,13 +273,43 @@
 <style>
     .fixture-button {
         display: block;
-        padding: 8px;
-        margin: 10px;
-        width: 280px;
+        padding: 10px 12px;
+        margin: 4px 0;
+        width: 100%;
+        text-align: left;
+        border: 1px solid transparent;
+        border-left: 3px solid transparent;
+    }
+
+    .fixture-button:hover {
+        background-color: var(--btn-default-hover);
+    }
+
+    .selected-fixture-button {
+        background-color: var(--bg-elevated);
+        border-left: 3px solid var(--accent-blue);
+    }
+
+    .selected-fixture-button:hover {
+        background-color: var(--bg-elevated);
     }
 
     .fixture {
         text-align: left;
+    }
+
+    .fixture label {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        color: var(--text-secondary);
+        font-size: 13px;
+    }
+
+    .fixture h2 {
+        margin-top: 0;
     }
 
     .side-by-side-holder {
@@ -291,6 +321,7 @@
     .side-by-side-left {
         width: 300px;
         text-align: center;
+        padding: 4px;
     }
 
     .side-by-side-right {
@@ -305,16 +336,8 @@
         max-height: 60vh;
     }
 
-    .selected-fixture-button {
-        background-color: var(--main-button-active-color);
-    }
-
     .fixture-settings-button {
         margin: 4px 0;
-    }
-
-    .remove-fixture-button {
-        background-color: var(--main-red-color);
     }
 
     .fixture-list-separator {

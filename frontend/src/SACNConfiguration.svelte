@@ -76,79 +76,69 @@
 
 <div class="overlay-content">
     <div class="sacn-settings-list">
-        <table class="sacn-settings-table">
-            <tr>
-                <td>IP Address:</td>
-                <td>
-                    <select
-                        bind:value={$sacnConfig.ipAddress}
-                        on:change={sacnConfigUpdated}
+        <div class="sacn-row">
+            <span class="sacn-label">IP Address:</span>
+            <select
+                bind:value={$sacnConfig.ipAddress}
+                on:change={sacnConfigUpdated}
+            >
+                {#each $sacnConfig.possibleIdAddresses as possibleIdAddress}
+                    <option value={possibleIdAddress}
+                        >{possibleIdAddress}</option
                     >
-                        {#each $sacnConfig.possibleIdAddresses as possibleIdAddress}
-                            <option value={possibleIdAddress}
-                                >{possibleIdAddress}</option
-                            >
-                        {/each}
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <button on:click={refreshIPAdresses}> Refresh </button>
-            </tr>
-            <tr>
-                <td>FPS:</td>
-                <td>
-                    <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        bind:value={$sacnConfig.fps}
-                        on:change={sacnConfigUpdated}
-                    />
-                </td>
-            </tr>
-            <tr>
-                <td>Multicast:</td>
-                <td>
-                    <input
-                        type="checkbox"
-                        bind:checked={$sacnConfig.multicast}
-                        on:change={sacnConfigUpdated}
-                    />
-                </td>
-            </tr>
-            <tr>
-                <td>Destinations:</td>
-                <td>
-                    {#each $sacnConfig.destinations as destination, index}
-                        <div>
-                            <input
-                                type="text"
-                                bind:value={$sacnConfig.destinations[index]}
-                                on:change={sacnConfigUpdated}
-                            />
-                            <button
-                                on:click={() => {
-                                    removeDestination(index);
-                                }}
-                                class="sacn-destination-remove-button">x</button
-                            >
-                        </div>
-                    {/each}
-                    <button
-                        class="sacn-add-destination-button"
-                        on:click={addDestination}>Add</button
-                    >
-                </td>
-            </tr>
-        </table>
+                {/each}
+            </select>
+        </div>
+        <div class="sacn-row">
+            <span class="sacn-label"></span>
+            <button on:click={refreshIPAdresses}>Refresh</button>
+        </div>
+        <div class="sacn-row">
+            <span class="sacn-label">FPS:</span>
+            <input
+                type="number"
+                min="1"
+                step="1"
+                bind:value={$sacnConfig.fps}
+                on:change={sacnConfigUpdated}
+            />
+        </div>
+        <div class="sacn-row">
+            <span class="sacn-label">Multicast:</span>
+            <input
+                type="checkbox"
+                bind:checked={$sacnConfig.multicast}
+                on:change={sacnConfigUpdated}
+            />
+        </div>
+        <div class="sacn-row sacn-destinations">
+            <span class="sacn-label">Destinations:</span>
+            <div class="sacn-destination-list">
+                {#each $sacnConfig.destinations as destination, index}
+                    <div class="sacn-destination-row">
+                        <input
+                            type="text"
+                            bind:value={$sacnConfig.destinations[index]}
+                            on:change={sacnConfigUpdated}
+                        />
+                        <button
+                            class="sacn-destination-remove-button btn-danger"
+                            on:click={() => {
+                                removeDestination(index);
+                            }}>x</button
+                        >
+                    </div>
+                {/each}
+                <button on:click={addDestination}>Add</button>
+            </div>
+        </div>
         <div class="sacn-settings-separator"></div>
         {#if sacnConfigDirty}
-            <div>
-                <button class="sacn-cancel-button" on:click={cancelSACNConfig}
+            <div class="sacn-actions">
+                <button class="btn-danger" on:click={cancelSACNConfig}
                     >Cancel</button
                 >
-                <button class="sacn-apply-button" on:click={applySACNConfig}
+                <button class="btn-primary" on:click={applySACNConfig}
                     >Apply</button
                 >
             </div>
@@ -157,34 +147,52 @@
 </div>
 
 <style>
+    .sacn-settings-list {
+        text-align: left;
+    }
+
+    .sacn-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .sacn-label {
+        width: 120px;
+        flex-shrink: 0;
+        color: var(--text-secondary);
+        font-size: 13px;
+    }
+
+    .sacn-destinations {
+        align-items: flex-start;
+    }
+
+    .sacn-destination-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .sacn-destination-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .sacn-destination-remove-button {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
     .sacn-settings-separator {
         margin-top: 20px;
     }
 
-    .sacn-settings-list > div > button {
-        margin-top: 10px;
-    }
-
-    .sacn-destination-remove-button {
-        background-color: var(--main-red-color);
-        padding: 2px;
-    }
-
-    .sacn-settings-table {
-        text-align: left;
-    }
-
-    .sacn-settings-table > tr > td:first-child {
-        width: 140px;
-        align-content: start;
-    }
-
-    .sacn-add-destination-button {
-        background-color: var(--main-button-color);
-        padding: 4px;
-    }
-
-    .sacn-cancel-button {
-        background-color: var(--main-red-color);
+    .sacn-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
     }
 </style>

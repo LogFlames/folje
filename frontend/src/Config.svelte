@@ -81,7 +81,7 @@
     }
 </script>
 
-<div>
+<div class="config-buttons">
     <button on:click={loadConfig}>
         Load
     </button>
@@ -89,3 +89,10 @@
         Save
     </button>
 </div>
+
+<style>
+    .config-buttons {
+        display: flex;
+        gap: 8px;
+    }
+</style>

@@ -166,9 +166,12 @@
         pointer-events: none;
         top: 0;
         right: 0;
-        background-color: var(--overlay);
-        padding: 8px;
-        border-radius: 6px;
+        background: var(--bg-glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--border-muted);
+        border-radius: var(--radius-md);
+        padding: 10px 14px;
         text-align: right;
     }
 
@@ -179,9 +182,13 @@
         left: 50%;
         transform: translate(-50%, 0);
         width: 90%;
-        border-radius: 20px;
-        background-color: var(--overlay);
-        padding: 10px;
+        background: var(--bg-glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--border-muted);
+        border-top: 2px solid var(--accent-blue);
+        border-radius: var(--radius-md);
+        padding: 12px 16px;
     }
 
     .tooltip > div {
