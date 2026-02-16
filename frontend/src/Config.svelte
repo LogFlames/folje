@@ -9,6 +9,8 @@
 
     function loadConfig() {
         App.LoadFile().then(content => {
+            if (!content) return;
+
             let obj;
             try {
                 obj = JSON.parse(content);
