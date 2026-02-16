@@ -38,6 +38,10 @@ export function SetFixtures(arg1) {
   return window['go']['main']['App']['SetFixtures'](arg1);
 }
 
+export function SetLastVideoSource(arg1, arg2) {
+  return window['go']['main']['App']['SetLastVideoSource'](arg1, arg2);
+}
+
 export function SetMouseForAllFixtures(arg1, arg2) {
   return window['go']['main']['App']['SetMouseForAllFixtures'](arg1, arg2);
 }

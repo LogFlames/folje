@@ -19,6 +19,30 @@
                 calibrationPoints.set(obj["calibrationPoints"]);
             }
 
+            // Restore sACN config if present
+            if (obj["sacnConfig"] !== undefined) {
+                sacnConfig.update((config) => {
+                    if (config) {
+                        const updatedConfig = {
+                            ...config,
+                            multicast: obj.sacnConfig.multicast ?? config.multicast,
+                            destinations: obj.sacnConfig.destinations ?? config.destinations,
+                            fps: obj.sacnConfig.fps ?? config.fps,
+                        };
+                        // Apply to backend
+                        App.SetSACNConfig({
+                            IpAddress: updatedConfig.ipAddress,
+                            PossibleIpAddresses: updatedConfig.possibleIdAddresses,
+                            Fps: updatedConfig.fps,
+                            Multicast: updatedConfig.multicast,
+                            Destinations: updatedConfig.destinations,
+                        });
+                        return updatedConfig;
+                    }
+                    return config;
+                });
+            }
+
             App.AlertDialog("Loaded Config", "Loaded configuration from file.");
         }).catch(() => {
             App.AlertDialog("Load Config Error", "Error while trying to load configuration from file.");
@@ -26,9 +50,15 @@
     }
 
     function saveConfig() {
+        const currentSacnConfig = get(sacnConfig);
         let content = JSON.stringify({
             fixtures: get(fixtures),
             calibrationPoints: get(calibrationPoints),
+            sacnConfig: currentSacnConfig ? {
+                multicast: currentSacnConfig.multicast,
+                destinations: currentSacnConfig.destinations,
+                fps: currentSacnConfig.fps,
+            } : undefined,
             date: String(new Date())
         });
 

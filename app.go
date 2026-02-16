@@ -203,11 +203,13 @@ func (a *App) SetPanTiltForFixture(fixtureId string, pan int, tilt int) {
 }
 
 type LastSessionInfo struct {
-	HasLastSession bool   `json:"hasLastSession"`
-	ConfigPath     string `json:"configPath"`
-	ConfigName     string `json:"configName"`
-	IpAddress      string `json:"ipAddress"`
-	IpAddressValid bool   `json:"ipAddressValid"`
+	HasLastSession   bool   `json:"hasLastSession"`
+	ConfigPath       string `json:"configPath"`
+	ConfigName       string `json:"configName"`
+	IpAddress        string `json:"ipAddress"`
+	IpAddressValid   bool   `json:"ipAddressValid"`
+	VideoSourceId    string `json:"videoSourceId"`
+	VideoSourceLabel string `json:"videoSourceLabel"`
 }
 
 func (a *App) GetLastSessionInfo() LastSessionInfo {
@@ -234,10 +236,16 @@ func (a *App) GetLastSessionInfo() LastSessionInfo {
 	}
 
 	return LastSessionInfo{
-		HasLastSession: true,
-		ConfigPath:     prefs.LastConfigPath,
-		ConfigName:     filepath.Base(prefs.LastConfigPath),
-		IpAddress:      prefs.LastIpAddress,
-		IpAddressValid: ipValid,
+		HasLastSession:   true,
+		ConfigPath:       prefs.LastConfigPath,
+		ConfigName:       filepath.Base(prefs.LastConfigPath),
+		IpAddress:        prefs.LastIpAddress,
+		IpAddressValid:   ipValid,
+		VideoSourceId:    prefs.LastVideoSourceId,
+		VideoSourceLabel: prefs.LastVideoSourceLabel,
 	}
+}
+
+func (a *App) SetLastVideoSource(id, label string) {
+	a.updateLastVideoSource(id, label)
 }

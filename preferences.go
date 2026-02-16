@@ -7,8 +7,10 @@ import (
 )
 
 type Preferences struct {
-	LastConfigPath string `json:"lastConfigPath"`
-	LastIpAddress  string `json:"lastIpAddress"`
+	LastConfigPath       string `json:"lastConfigPath"`
+	LastIpAddress        string `json:"lastIpAddress"`
+	LastVideoSourceId    string `json:"lastVideoSourceId"`
+	LastVideoSourceLabel string `json:"lastVideoSourceLabel"`
 }
 
 func getPreferencesPath() (string, error) {
@@ -72,6 +74,15 @@ func (a *App) updateLastConfigPath(path string) {
 func (a *App) updateLastIpAddress(ip string) {
 	prefs := loadPreferences()
 	prefs.LastIpAddress = ip
+	if err := savePreferences(prefs); err != nil {
+		LogError("Failed to save preferences: %s", err.Error())
+	}
+}
+
+func (a *App) updateLastVideoSource(id, label string) {
+	prefs := loadPreferences()
+	prefs.LastVideoSourceId = id
+	prefs.LastVideoSourceLabel = label
 	if err := savePreferences(prefs); err != nil {
 		LogError("Failed to save preferences: %s", err.Error())
 	}

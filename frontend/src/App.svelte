@@ -127,6 +127,21 @@
                 calibrationPoints.set(obj["calibrationPoints"]);
             }
 
+            // Restore sACN config from file if present
+            if (obj["sacnConfig"] !== undefined) {
+                sacnConfig.update((config) => {
+                    if (config) {
+                        return {
+                            ...config,
+                            multicast: obj.sacnConfig.multicast ?? config.multicast,
+                            destinations: obj.sacnConfig.destinations ?? config.destinations,
+                            fps: obj.sacnConfig.fps ?? config.fps,
+                        };
+                    }
+                    return config;
+                });
+            }
+
             // Handle IP address
             if (lastSessionInfo.ipAddress && lastSessionInfo.ipAddressValid) {
                 // Use the saved IP address
@@ -159,6 +174,19 @@
                     Multicast: config.multicast,
                     Destinations: config.destinations,
                 });
+            }
+
+            // Restore video source if available
+            if (lastSessionInfo.videoSourceId && videoSelect && videoSelect.options.length > 0) {
+                // Try to find the saved video source in the select options
+                const optionIndex = [...videoSelect.options].findIndex(
+                    (option) => option.value === lastSessionInfo.videoSourceId ||
+                               option.text === lastSessionInfo.videoSourceLabel
+                );
+                if (optionIndex >= 0) {
+                    videoSelect.selectedIndex = optionIndex;
+                    getStream();
+                }
             }
 
             showRestoreDialog = false;
@@ -653,7 +681,7 @@
                 });
         }
 
-        const videoSource = videoSelect.value;
+        const videoSource = videoSelect?.value;
         const constraints = {
             video: {
                 deviceId: videoSource ? { exact: videoSource } : undefined,
@@ -674,9 +702,20 @@
 
         getDevices().then((devices) => {
             gotDevices(devices);
-            videoSelect.selectedIndex = [...videoSelect.options].findIndex(
-                (option) => option.text === p_stream.getVideoTracks()[0].label,
-            );
+            const videoTrack = p_stream.getVideoTracks()[0];
+            if (videoSelect && videoTrack) {
+                videoSelect.selectedIndex = [...videoSelect.options].findIndex(
+                    (option) => option.text === videoTrack.label,
+                );
+
+                // Save the selected video source to preferences
+                if (videoSelect.selectedIndex >= 0) {
+                    const selectedOption = videoSelect.options[videoSelect.selectedIndex];
+                    if (selectedOption) {
+                        App.SetLastVideoSource(selectedOption.value, selectedOption.text);
+                    }
+                }
+            }
         });
 
         setTimeout(() => {

@@ -84,6 +84,8 @@ export namespace main {
 	    configName: string;
 	    ipAddress: string;
 	    ipAddressValid: boolean;
+	    videoSourceId: string;
+	    videoSourceLabel: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new LastSessionInfo(source);
@@ -96,6 +98,8 @@ export namespace main {
 	        this.configName = source["configName"];
 	        this.ipAddress = source["ipAddress"];
 	        this.ipAddressValid = source["ipAddressValid"];
+	        this.videoSourceId = source["videoSourceId"];
+	        this.videoSourceLabel = source["videoSourceLabel"];
 	    }
 	}
 	export class Point {

@@ -20,6 +20,8 @@ export function SetCalibrationPoints(arg1:Record<string, main.CalibrationPoint>)
 
 export function SetFixtures(arg1:Record<string, main.Fixture>):Promise<void>;
 
+export function SetLastVideoSource(arg1:string,arg2:string):Promise<void>;
+
 export function SetMouseForAllFixtures(arg1:number,arg2:number):Promise<void>;
 
 export function SetPanTiltForFixture(arg1:string,arg2:number,arg3:number):Promise<void>;
