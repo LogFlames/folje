@@ -1034,6 +1034,8 @@
     .settings-button:hover {
         background-color: transparent;
         border: none;
+        box-shadow: none;
+        transform: none;
         opacity: 1;
     }
 

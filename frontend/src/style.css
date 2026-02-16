@@ -77,18 +77,22 @@ select {
     border-radius: var(--radius-md);
     cursor: pointer;
     box-shadow: var(--shadow-sm);
-    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 button:hover,
 select:hover {
     background-color: var(--btn-default-hover);
     border-color: #484f58;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+    transform: translateY(-1px);
 }
 
 button:active,
 select:active {
     background-color: var(--btn-default-active);
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
 }
 
 select {
@@ -134,6 +138,7 @@ input[type="checkbox"] {
 .btn-primary:hover {
     background-color: var(--btn-primary-hover);
     border-color: var(--btn-primary-hover);
+    box-shadow: 0 3px 12px rgba(35, 134, 54, 0.4);
 }
 
 .btn-danger {
@@ -145,6 +150,7 @@ input[type="checkbox"] {
 .btn-danger:hover {
     background-color: var(--btn-danger-hover);
     border-color: var(--btn-danger-hover);
+    box-shadow: 0 3px 12px rgba(218, 54, 51, 0.4);
 }
 
 label,
