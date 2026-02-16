@@ -4,7 +4,7 @@
         toast,
         type SvelteToastOptions,
     } from "@zerodevx/svelte-toast";
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import { get, writable } from "svelte/store";
     import { v4 as uuidv4 } from "uuid";
     import * as App from "../wailsjs/go/main/App";
@@ -724,8 +724,9 @@
         stream.set(p_stream);
         videoElement.srcObject = p_stream;
 
-        getDevices().then((devices) => {
+        getDevices().then(async (devices) => {
             gotDevices(devices);
+            await tick();
             const videoTrack = p_stream.getVideoTracks()[0];
             App.Log(`Using camera source: ${videoTrack?.label || "unknown"}`);
             if (videoSelect && videoTrack) {
