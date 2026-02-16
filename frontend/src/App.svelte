@@ -318,6 +318,16 @@
         removingCalibrationPoint = true;
     }
 
+    function sendCurrentPositionToCalibrating() {
+        let cal = get(currentlyCalibrating);
+        if (cal !== null && cal.calibration_point_id !== null) {
+            let fixture = get(fixtures)[cal.fixture_id];
+            let pan = calcPan(fixture, get(mousePos), get(mouseDragStart));
+            let tilt = calcTilt(fixture, get(mousePos), get(mouseDragStart));
+            App.SetPanTiltForFixture(cal.fixture_id, Math.floor(pan), Math.floor(tilt));
+        }
+    }
+
     function calibrateFixtureForOnePoint(fixture_id: string) {
         if (Object.keys(get(calibrationPoints)).length === 0) {
             App.AlertDialog("No calibration points", "You need to add calibration points first.");
@@ -355,6 +365,7 @@
         });
 
         calibrationPointsToCalibrate.set(calibration_points_missing);
+        sendCurrentPositionToCalibrating();
     }
 
     function calibrateFixtureForAllPoints(fixture_id: string) {
@@ -378,6 +389,7 @@
                     get(currentlyCalibrating).calibration_point_id,
             ),
         );
+        sendCurrentPositionToCalibrating();
     }
 
     function handleKeyup(event: KeyboardEvent) {
@@ -618,6 +630,7 @@
                 );
             });
         }
+        sendCurrentPositionToCalibrating();
     }
 
     function calculateVideoSize() {
