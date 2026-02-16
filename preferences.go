@@ -36,7 +36,7 @@ func loadPreferences() Preferences {
 
 	var prefs Preferences
 	if err := json.Unmarshal(data, &prefs); err != nil {
-		LogError("Failed to parse preferences: %s", err.Error())
+		LogError("Failed to parse preferences: %s (content: %s)", err.Error(), string(data))
 		return Preferences{}
 	}
 

@@ -64,8 +64,12 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) shutdown(ctx context.Context) {
 	LogInfo("App shutdown beginning")
 	if a.sacnStopLoop != nil {
+		LogInfo("Sending stop signal to sACN worker")
 		a.sacnStopLoop <- true
+	} else {
+		LogError("sacnStopLoop channel is nil during shutdown")
 	}
+	LogInfo("Waiting for sACN worker to finish")
 	a.sacnWorkerWG.Wait()
 	LogInfo("App shutdown complete")
 }
@@ -148,7 +152,7 @@ func (a *App) calculateLinearInterpolator() {
 
 		interp, err := NewLinear2DPanTiltInterpolator(points, panValues, tiltValues, -1.0)
 		if err != nil {
-			runtime.LogError(a.ctx, err.Error())
+			LogError("Failed to create interpolator for fixture %s (%s): %s", fixture.Id, fixture.Name, err.Error())
 			continue
 		}
 
@@ -180,7 +184,7 @@ func (a *App) SetMouseForAllFixtures(x float64, y float64) {
 func (a *App) SetPanTiltForFixture(fixtureId string, pan int, tilt int) {
 	fixture, exists := a.fixtures[fixtureId]
 	if !exists {
-		runtime.LogError(a.ctx, "Tried to set pan/tilt for non-existing fixture")
+		LogError("Tried to set pan/tilt for non-existing fixture: %s", fixtureId)
 		return
 	}
 
@@ -248,4 +252,8 @@ func (a *App) GetLastSessionInfo() LastSessionInfo {
 
 func (a *App) SetLastVideoSource(id, label string) {
 	a.updateLastVideoSource(id, label)
+}
+
+func (a *App) Log(message string) {
+	LogInfo("[Frontend] %s", message)
 }

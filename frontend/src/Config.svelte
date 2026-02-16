@@ -9,7 +9,14 @@
 
     function loadConfig() {
         App.LoadFile().then(content => {
-            let obj = JSON.parse(content);
+            let obj;
+            try {
+                obj = JSON.parse(content);
+            } catch (err) {
+                App.Log(`Failed to parse config file: ${err}`);
+                App.AlertDialog("Load Config Error", "Config file contains invalid data.");
+                return;
+            }
 
             if (obj["fixtures"] !== undefined) {
                 fixtures.set(obj["fixtures"]);
@@ -44,7 +51,8 @@
             }
 
             App.AlertDialog("Loaded Config", "Loaded configuration from file.");
-        }).catch(() => {
+        }).catch((err) => {
+            App.Log(`Failed to load config file: ${err}`);
             App.AlertDialog("Load Config Error", "Error while trying to load configuration from file.");
         });
     }
@@ -64,7 +72,8 @@
 
         App.SaveFile(content).then(() => {
             App.AlertDialog("Save Config", "Saved configuration to file.");
-        }).catch(() => {
+        }).catch((err) => {
+            App.Log(`Failed to save config file: ${err}`);
             App.AlertDialog("Save Config Error", "Error while trying to save configuration to file.");
         })
     }

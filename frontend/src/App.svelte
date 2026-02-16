@@ -109,7 +109,11 @@
                     lastSessionInfo = info;
                     showRestoreDialog = true;
                 }
+            }).catch((err) => {
+                App.Log(`Failed to get last session info: ${err}`);
             });
+        }).catch((err) => {
+            App.Log(`Failed to get sACN config: ${err}`);
         });
     });
 
@@ -117,7 +121,16 @@
         if (!lastSessionInfo) return;
 
         App.LoadFileFromPath(lastSessionInfo.configPath).then((content) => {
-            let obj = JSON.parse(content);
+            let obj;
+            try {
+                obj = JSON.parse(content);
+            } catch (err) {
+                App.Log(`Failed to parse config file ${lastSessionInfo.configPath}: ${err}`);
+                showNotification("Failed to parse config file");
+                showRestoreDialog = false;
+                lastSessionInfo = null;
+                return;
+            }
 
             if (obj["fixtures"] !== undefined) {
                 fixtures.set(obj["fixtures"]);
@@ -191,7 +204,8 @@
 
             showRestoreDialog = false;
             lastSessionInfo = null;
-        }).catch(() => {
+        }).catch((err) => {
+            App.Log(`Failed to restore last session: ${err}`);
             showNotification("Failed to restore last session");
             showRestoreDialog = false;
             lastSessionInfo = null;
@@ -670,6 +684,8 @@
 
     function gotDevices(p_deviceInfos) {
         deviceInfos.set(p_deviceInfos);
+        const videoDevices = p_deviceInfos.filter(d => d.kind === "videoinput");
+        App.Log(`Found ${videoDevices.length} camera source(s): ${videoDevices.map(d => d.label || d.deviceId).join(", ")}`);
     }
 
     function getStream() {
@@ -703,6 +719,7 @@
         getDevices().then((devices) => {
             gotDevices(devices);
             const videoTrack = p_stream.getVideoTracks()[0];
+            App.Log(`Using camera source: ${videoTrack?.label || "unknown"}`);
             if (videoSelect && videoTrack) {
                 videoSelect.selectedIndex = [...videoSelect.options].findIndex(
                     (option) => option.text === videoTrack.label,
@@ -725,6 +742,7 @@
 
     function handleError(error) {
         console.error("Error: ", error);
+        App.Log(`Camera/stream error: ${error}`);
     }
 </script>
 

@@ -39,11 +39,13 @@ func (a *App) findPossibleIPAddresses() {
 	}
 
 	a.sacnConfig.PossibleIpAddresses = possibleAddresses
+	LogInfo("Found %d IP address(es): %v", len(possibleAddresses), possibleAddresses)
 	if len(possibleAddresses) == 0 {
 		a.AlertDialog("No IP addresses found", "This should not happen. Make sure you have a network interface active.")
 		return
 	}
 	a.sacnConfig.IpAddress = possibleAddresses[0]
+	LogInfo("Selected IP address: %s", possibleAddresses[0])
 }
 
 func (a *App) LoadFile() string {
@@ -71,6 +73,8 @@ func (a *App) LoadFile() string {
 		return "{}"
 	}
 
+	LogInfo("Loaded config from file: %s", file)
+
 	// Save the config path to preferences
 	a.updateLastConfigPath(file)
 
@@ -87,6 +91,8 @@ func (a *App) LoadFileFromPath(path string) string {
 		runtime.LogError(a.ctx, err.Error())
 		return "{}"
 	}
+
+	LogInfo("Loaded config from path: %s", path)
 
 	return string(data)
 }
@@ -118,6 +124,8 @@ func (a *App) SaveFile(content string) {
 		runtime.LogError(a.ctx, err.Error())
 		return
 	}
+
+	LogInfo("Saved config to file: %s", file)
 
 	// Save the config path to preferences
 	a.updateLastConfigPath(file)

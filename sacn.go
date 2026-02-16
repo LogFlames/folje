@@ -4,7 +4,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"gitlab.com/patopest/go-sacn"
 	"gitlab.com/patopest/go-sacn/packet"
 )
@@ -64,12 +63,12 @@ func (a *App) ensureSACNSender() error {
 	}
 	sender, err := sacn.NewSender(a.sacnConfig.IpAddress, &opts)
 	if err != nil {
-		runtime.LogError(a.ctx, err.Error())
+		LogError("Failed to create sACN sender on IP %s: %s", a.sacnConfig.IpAddress, err.Error())
 		a.sender = nil
-		// a.AlertDialog("sACN sender error", err.Error())
 		return err
 	}
 
+	LogInfo("Created sACN sender on IP %s (source: %s)", a.sacnConfig.IpAddress, sourceName)
 	a.sender = sender
 
 	return nil
@@ -128,7 +127,7 @@ func (a *App) activateUniverse(uni uint16) {
 	LogInfo("Activating universe %d", uni)
 	universe, err := a.sender.StartUniverse(uni)
 	if err != nil {
-		runtime.LogError(a.ctx, err.Error())
+		LogError("Failed to start universe %d: %s", uni, err.Error())
 		return
 	}
 	a.sender.SetMulticast(uni, a.sacnConfig.Multicast)
@@ -154,6 +153,7 @@ func (a *App) deactiveUniverse(uni uint16) {
 }
 
 func (a *App) SetSACNConfig(sacnConfig SACNConfig) {
+	LogInfo("SetSACNConfig: IP=%s, Multicast=%v, FPS=%d, Destinations=%v", sacnConfig.IpAddress, sacnConfig.Multicast, sacnConfig.Fps, sacnConfig.Destinations)
 	a.sacnConfig = &sacnConfig
 
 	// Save the IP address to preferences
