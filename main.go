@@ -18,6 +18,11 @@ func main() {
 		println("Warning: Could not initialize file logging:", err.Error())
 	}
 	defer CloseLogger()
+	defer func() {
+		if r := recover(); r != nil {
+			LogError("PANIC in main: %v", r)
+		}
+	}()
 
 	LogInfo("")
 	LogInfo("=== Folje Application Starting ===")

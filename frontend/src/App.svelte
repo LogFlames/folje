@@ -94,6 +94,14 @@
     });
 
     onMount(() => {
+        // Global error handlers to log crashes to backend
+        window.addEventListener("error", (event) => {
+            App.Log(`JS ERROR: ${event.message} at ${event.filename}:${event.lineno}:${event.colno}`).catch(() => {});
+        });
+        window.addEventListener("unhandledrejection", (event) => {
+            App.Log(`UNHANDLED PROMISE REJECTION: ${event.reason}`).catch(() => {});
+        });
+
         App.GetSACNConfig().then((sacnConfigFromApp) => {
             sacnConfig.set({
                 ipAddress: sacnConfigFromApp.IpAddress,

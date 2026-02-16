@@ -9,6 +9,12 @@ import (
 )
 
 func (a *App) sacnWorker() {
+	defer func() {
+		if r := recover(); r != nil {
+			LogError("PANIC in sACN worker: %v", r)
+		}
+	}()
+
 	ticker := time.NewTicker(time.Second)
 	if a.sacnConfig.Fps != 0 {
 		ticker = time.NewTicker(time.Second / time.Duration(a.sacnConfig.Fps))
