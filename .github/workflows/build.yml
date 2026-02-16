@@ -97,17 +97,20 @@ jobs:
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
           COMMIT_MSG=$(git log -1 --pretty=%s)
+          DATE=$(date -u +%Y-%m-%d)
           echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
           echo "commit_msg=$COMMIT_MSG" >> "$GITHUB_OUTPUT"
+          echo "date=$DATE" >> "$GITHUB_OUTPUT"
         shell: bash
 
       - name: Create per-commit release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          printf "Build from commit %s\n\n%s\n" "${{ github.sha }}" "${{ steps.commit_info.outputs.commit_msg }}" > release_notes.md
           gh release create "${{ steps.commit_info.outputs.short_sha }}" \
-            --title "${{ steps.commit_info.outputs.short_sha }} - ${{ steps.commit_info.outputs.commit_msg }}" \
-            --notes "Build from commit ${{ github.sha }}" \
+            --title "Följe ${{ steps.commit_info.outputs.date }} (${{ steps.commit_info.outputs.short_sha }})" \
+            --notes-file release_notes.md \
             --repo LogFlames/folje \
             ./windows-build-output/Följe.exe ./macos-build-output/Följe.app.zip
         shell: bash
