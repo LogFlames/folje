@@ -70,8 +70,10 @@
             date: String(new Date())
         });
 
-        App.SaveFile(content).then(() => {
-            App.AlertDialog("Save Config", "Saved configuration to file.");
+        App.SaveFile(content).then((saved) => {
+            if (saved) {
+                App.AlertDialog("Save Config", "Saved configuration to file.");
+            }
         }).catch((err) => {
             App.Log(`Failed to save config file: ${err}`);
             App.AlertDialog("Save Config Error", "Error while trying to save configuration to file.");

@@ -742,7 +742,7 @@
 
     function handleError(error) {
         console.error("Error: ", error);
-        App.Log(`Camera/stream error: ${error}`);
+        App.Log(`Camera/stream error: ${error}`).catch(() => {});
     }
 </script>
 

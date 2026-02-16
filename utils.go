@@ -97,7 +97,7 @@ func (a *App) LoadFileFromPath(path string) string {
 	return string(data)
 }
 
-func (a *App) SaveFile(content string) {
+func (a *App) SaveFile(content string) bool {
 	file, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
 		Title: "Save Följe Configuration",
 		Filters: []runtime.FileFilter{
@@ -109,24 +109,25 @@ func (a *App) SaveFile(content string) {
 		DefaultFilename: "conf.fconf",
 	})
 	if err != nil {
-		runtime.LogError(a.ctx, err.Error())
-		return
+		LogError("Failed to open save dialog: %s", err.Error())
+		return false
 	}
 
 	// User cancelled the dialog
 	if file == "" {
-		return
+		return false
 	}
 
 	err = os.WriteFile(file, []byte(content), 0644)
 
 	if err != nil {
-		runtime.LogError(a.ctx, err.Error())
-		return
+		LogError("Failed to write config file %s: %s", file, err.Error())
+		return false
 	}
 
 	LogInfo("Saved config to file: %s", file)
 
 	// Save the config path to preferences
 	a.updateLastConfigPath(file)
+	return true
 }

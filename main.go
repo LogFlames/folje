@@ -19,7 +19,9 @@ func main() {
 	}
 	defer CloseLogger()
 
+	LogInfo("")
 	LogInfo("=== Folje Application Starting ===")
+	LogInfo("")
 
 	// Create an instance of the app structure
 	app := NewApp()
@@ -51,5 +53,7 @@ func main() {
 		LogError("Wails error: %s", err.Error())
 	}
 
+	LogInfo("")
 	LogInfo("=== Folje Application Exiting ===")
+	LogInfo("")
 }
