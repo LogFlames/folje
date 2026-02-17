@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"runtime/debug"
 	"time"
 
 	"gitlab.com/patopest/go-sacn"
@@ -11,7 +12,7 @@ import (
 func (a *App) sacnWorker() {
 	defer func() {
 		if r := recover(); r != nil {
-			LogError("PANIC in sACN worker: %v", r)
+			LogError("PANIC in sACN worker: %v\n%s", r, debug.Stack())
 		}
 		a.closeSACNSender()
 		a.sacnWorkerWG.Done()
