@@ -13,6 +13,8 @@ func (a *App) sacnWorker() {
 		if r := recover(); r != nil {
 			LogError("PANIC in sACN worker: %v", r)
 		}
+		a.closeSACNSender()
+		a.sacnWorkerWG.Done()
 	}()
 
 	ticker := time.NewTicker(time.Second)
@@ -47,8 +49,6 @@ func (a *App) sacnWorker() {
 				ticker = time.NewTicker(time.Second / time.Duration(a.sacnConfig.Fps))
 			}
 		case <-a.sacnStopLoop:
-			a.closeSACNSender()
-			a.sacnWorkerWG.Done()
 			return
 		case <-ticker.C:
 			work()
