@@ -57,7 +57,7 @@ func (a *App) startup(ctx context.Context) {
 
 	a.sacnWorkerWG.Add(1)
 	LogInfo("Starting sACN worker goroutine")
-	go a.sacnWorker()
+	go a.sacnWorkerLoop()
 
 	LogInfo("App startup complete")
 }
@@ -66,7 +66,7 @@ func (a *App) shutdown(ctx context.Context) {
 	LogInfo("App shutdown beginning")
 	if a.sacnStopLoop != nil {
 		LogInfo("Sending stop signal to sACN worker")
-		a.sacnStopLoop <- true
+		close(a.sacnStopLoop)
 	} else {
 		LogError("sacnStopLoop channel is nil during shutdown")
 	}

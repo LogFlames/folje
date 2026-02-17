@@ -9,13 +9,39 @@ import (
 	"gitlab.com/patopest/go-sacn/packet"
 )
 
-func (a *App) sacnWorker() {
+const sacnWorkerMaxRestarts = 3
+
+func (a *App) sacnWorkerLoop() {
+	defer a.sacnWorkerWG.Done()
+
+	for attempt := range sacnWorkerMaxRestarts + 1 {
+		panicked := a.sacnWorker()
+
+		a.mu.Lock()
+		a.closeSACNSender()
+		a.mu.Unlock()
+
+		if !panicked {
+			return
+		}
+
+		if attempt < sacnWorkerMaxRestarts {
+			LogInfo("Restarting sACN worker (attempt %d/%d)", attempt+1, sacnWorkerMaxRestarts)
+			time.Sleep(time.Second)
+		} else {
+			LogError("sACN worker failed after %d restarts, giving up", sacnWorkerMaxRestarts)
+			a.AlertDialog("sACN Error", "The sACN worker has crashed repeatedly and will not be restarted. Please restart the application.")
+		}
+	}
+}
+
+// sacnWorker runs the sACN send loop. Returns true if it exited due to a panic.
+func (a *App) sacnWorker() (panicked bool) {
 	defer func() {
 		if r := recover(); r != nil {
 			LogError("PANIC in sACN worker: %v\n%s", r, debug.Stack())
+			panicked = true
 		}
-		a.closeSACNSender()
-		a.sacnWorkerWG.Done()
 	}()
 
 	ticker := time.NewTicker(time.Second)
@@ -50,7 +76,7 @@ func (a *App) sacnWorker() {
 				ticker = time.NewTicker(time.Second / time.Duration(a.sacnConfig.Fps))
 			}
 		case <-a.sacnStopLoop:
-			return
+			return false
 		case <-ticker.C:
 			work()
 		}
@@ -179,7 +205,10 @@ func (a *App) SetSACNConfig(sacnConfig SACNConfig) {
 	a.ensureSACNUniverses()
 	a.mu.Unlock()
 
-	a.sacnUpdatedConfig <- true
+	select {
+	case a.sacnUpdatedConfig <- true:
+	default:
+	}
 }
 
 func (a *App) GetSACNConfig() SACNConfig {
