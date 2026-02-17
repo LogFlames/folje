@@ -21,6 +21,9 @@ func (a *App) sacnWorker() {
 	}
 
 	work := func() {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+
 		a.ensureSACNSender()
 		a.ensureSACNUniverses()
 
@@ -160,6 +163,8 @@ func (a *App) deactiveUniverse(uni uint16) {
 
 func (a *App) SetSACNConfig(sacnConfig SACNConfig) {
 	LogInfo("SetSACNConfig: IP=%s, Multicast=%v, FPS=%d, Destinations=%v", sacnConfig.IpAddress, sacnConfig.Multicast, sacnConfig.Fps, sacnConfig.Destinations)
+
+	a.mu.Lock()
 	a.sacnConfig = &sacnConfig
 
 	// Save the IP address to preferences
@@ -171,6 +176,7 @@ func (a *App) SetSACNConfig(sacnConfig SACNConfig) {
 
 	a.ensureSACNSender()
 	a.ensureSACNUniverses()
+	a.mu.Unlock()
 
 	a.sacnUpdatedConfig <- true
 }

@@ -16,6 +16,7 @@ import (
 type App struct {
 	ctx context.Context
 
+	mu                sync.Mutex // protects fields below from concurrent worker/frontend access
 	fixtures          map[string]Fixture
 	universeDMXData   map[uint16]DMXData
 	calibrationPoints map[string]CalibrationPoint
@@ -107,11 +108,17 @@ func (a *App) ConfirmDialog(title string, message string) string {
 }
 
 func (a *App) SetCalibrationPoints(calibrationPoints map[string]CalibrationPoint) {
+	LogInfo("SetCalibrationPoints: %d point(s)", len(calibrationPoints))
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	a.calibrationPoints = calibrationPoints
 	a.calculateLinearInterpolator()
 }
 
 func (a *App) SetFixtures(fixtures map[string]Fixture) {
+	LogInfo("SetFixtures: %d fixture(s)", len(fixtures))
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	a.fixtures = fixtures
 	a.universeDMXData = make(map[uint16]DMXData)
 	a.calculateLinearInterpolator()
@@ -161,6 +168,8 @@ func (a *App) calculateLinearInterpolator() {
 }
 
 func (a *App) SetMouseForAllFixtures(x float64, y float64) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	for _, fixture := range a.fixtures {
 		interp, exists := a.linearInterpolators[fixture.Id]
 		if !exists {
@@ -177,11 +186,17 @@ func (a *App) SetMouseForAllFixtures(x float64, y float64) {
 			continue
 		}
 
-		a.SetPanTiltForFixture(fixture.Id, int(pan), int(tilt))
+		a.setPanTiltForFixture(fixture.Id, int(pan), int(tilt))
 	}
 }
 
 func (a *App) SetPanTiltForFixture(fixtureId string, pan int, tilt int) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.setPanTiltForFixture(fixtureId, pan, tilt)
+}
+
+func (a *App) setPanTiltForFixture(fixtureId string, pan int, tilt int) {
 	fixture, exists := a.fixtures[fixtureId]
 	if !exists {
 		LogError("Tried to set pan/tilt for non-existing fixture: %s", fixtureId)
