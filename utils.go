@@ -59,12 +59,12 @@ func (a *App) LoadFile() string {
 		}})
 	if err != nil {
 		runtime.LogError(a.ctx, err.Error())
-		return "{}"
+		return ""
 	}
 
 	// User cancelled the dialog
 	if file == "" {
-		return "{}"
+		return ""
 	}
 
 	data, err := os.ReadFile(file)
