@@ -1038,7 +1038,6 @@
             <input type="checkbox" bind:checked={showCalibrationPoints} />
             Show Calibration Points
         </label>
-        <div class="settings-separator"></div>
         <details class="debug-details" bind:open={showDebugSection}>
             <summary>Debug</summary>
             <div class="debug-section">
@@ -1264,6 +1263,10 @@
 
     .debug-details {
         width: 100%;
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        background-color: var(--btn-default-bg);
+        box-shadow: var(--shadow-sm);
     }
 
     .debug-details summary {
@@ -1271,13 +1274,15 @@
         font-size: 14px;
         font-weight: 500;
         color: var(--text-primary);
-        background-color: var(--btn-default-bg);
-        border: 1px solid var(--border-default);
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-sm);
         cursor: pointer;
         list-style: none;
-        transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+        border-radius: var(--radius-md);
+        transition: background-color 0.15s ease;
+    }
+
+    .debug-details[open] summary {
+        border-bottom: 1px solid var(--border-muted);
+        border-radius: var(--radius-md) var(--radius-md) 0 0;
     }
 
     .debug-details summary::-webkit-details-marker {
@@ -1298,15 +1303,13 @@
 
     .debug-details summary:hover {
         background-color: var(--btn-default-hover);
-        border-color: #484f58;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.4);
     }
 
     .debug-section {
         display: flex;
         flex-direction: column;
         gap: 10px;
-        margin-top: 10px;
+        padding: 10px;
     }
 
     .settings-separator {
