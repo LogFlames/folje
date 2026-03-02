@@ -136,6 +136,28 @@ export namespace main {
 	        this.Destinations = source["Destinations"];
 	    }
 	}
+	export class Triangle {
+	    Ax: number;
+	    Ay: number;
+	    Bx: number;
+	    By: number;
+	    Cx: number;
+	    Cy: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Triangle(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Ax = source["Ax"];
+	        this.Ay = source["Ay"];
+	        this.Bx = source["Bx"];
+	        this.By = source["By"];
+	        this.Cx = source["Cx"];
+	        this.Cy = source["Cy"];
+	    }
+	}
 
 }
 

@@ -2,53 +2,78 @@ package main
 
 import (
 	"errors"
-	"math"
 
 	"github.com/fogleman/delaunay"
 )
 
 type Linear2DPanTiltInterpolator struct {
-	points     []delaunay.Point
-	tri        *delaunay.Triangulation
-	panValues  []float64
-	tiltValues []float64
-	fillValue  float64
+	points       []delaunay.Point
+	tri          *delaunay.Triangulation
+	panValues    []float64
+	tiltValues   []float64
+	fillValue    float64
+	lastTriangle int // cached triangle index for walk starting point
 }
 
-func area(a, b, c delaunay.Point) float64 {
-	return math.Abs((a.X*(b.Y-c.Y) + b.X*(c.Y-a.Y) + c.X*(a.Y-b.Y)) / 2.0)
-}
-
-func isPointInTriangle(a, b, c, p delaunay.Point) bool {
-	A := area(a, b, c)
-
-	A1 := area(p, b, c)
-	A2 := area(a, p, c)
-	A3 := area(a, b, p)
-
-	return math.Abs(A-(A1+A2+A3)) < 1e-9
+// cross returns the cross product of vectors (b-a) and (p-a).
+// Positive means p is to the left of edge a->b (inside for CCW triangles).
+func cross(a, b, p delaunay.Point) float64 {
+	return (b.X-a.X)*(p.Y-a.Y) - (b.Y-a.Y)*(p.X-a.X)
 }
 
 func (interp *Linear2DPanTiltInterpolator) LocatePoint(p delaunay.Point) (int, error) {
-	// TODO: Increase efficiency by moving by the edge towards the point instead of brute forcing all of the points
-	if len(interp.tri.Triangles) == 0 {
+	numEdges := len(interp.tri.Triangles)
+	if numEdges == 0 {
 		return -1, errors.New("no triangles in the triangulation")
 	}
 
-	for t := 0; t < len(interp.tri.Triangles); t += 3 {
-		// Bounds check for triangle indices
-		if t+2 >= len(interp.tri.Triangles) {
-			LogError("Triangle index out of bounds: %d >= %d", t+2, len(interp.tri.Triangles))
-			return -1, errors.New("triangle index out of bounds")
+	// Start the walk from the last found triangle for temporal coherence.
+	start := interp.lastTriangle * 3
+	if start < 0 || start+2 >= numEdges {
+		start = 0
+	}
+
+	e := start
+	maxIter := numEdges / 3
+	for range maxIter {
+		e0 := e
+		e1 := e + 1
+		e2 := e + 2
+
+		a := interp.points[interp.tri.Triangles[e0]]
+		b := interp.points[interp.tri.Triangles[e1]]
+		c := interp.points[interp.tri.Triangles[e2]]
+
+		// Check each edge: if p is to the right (outside), cross to the adjacent triangle.
+		if cross(a, b, p) < 0 {
+			opp := interp.tri.Halfedges[e0]
+			if opp == -1 {
+				return -1, errors.New("point is outside the convex hull")
+			}
+			e = opp - opp%3
+			continue
 		}
-		idx0, idx1, idx2 := interp.tri.Triangles[t], interp.tri.Triangles[t+1], interp.tri.Triangles[t+2]
-		if idx0 >= len(interp.points) || idx1 >= len(interp.points) || idx2 >= len(interp.points) {
-			LogError("Point index out of bounds in triangle: indices [%d, %d, %d], points len %d", idx0, idx1, idx2, len(interp.points))
-			return -1, errors.New("point index out of bounds")
+		if cross(b, c, p) < 0 {
+			opp := interp.tri.Halfedges[e1]
+			if opp == -1 {
+				return -1, errors.New("point is outside the convex hull")
+			}
+			e = opp - opp%3
+			continue
 		}
-		if isPointInTriangle(interp.points[idx0], interp.points[idx1], interp.points[idx2], p) {
-			return t / 3, nil
+		if cross(c, a, p) < 0 {
+			opp := interp.tri.Halfedges[e2]
+			if opp == -1 {
+				return -1, errors.New("point is outside the convex hull")
+			}
+			e = opp - opp%3
+			continue
 		}
+
+		// Point is inside (or on the boundary of) this triangle.
+		tri := e / 3
+		interp.lastTriangle = tri
+		return tri, nil
 	}
 
 	return -1, errors.New("point is outside the convex hull")

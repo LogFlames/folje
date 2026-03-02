@@ -47,6 +47,15 @@ export interface SACNConfig {
     destinations: string[];
 }
 
+export interface Triangle {
+    ax: number;
+    ay: number;
+    bx: number;
+    by: number;
+    cx: number;
+    cy: number;
+}
+
 export interface CalibratingFixture {
         fixture_id: string;
         calibration_point_id: string;

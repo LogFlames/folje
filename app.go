@@ -269,6 +269,32 @@ func (a *App) SetLastVideoSource(id, label string) {
 	a.updateLastVideoSource(id, label)
 }
 
+func (a *App) GetTriangles() []Triangle {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	// Grab the first available interpolator (all share the same geometry)
+	for _, interp := range a.linearInterpolators {
+		numEdges := len(interp.tri.Triangles)
+		numTriangles := numEdges / 3
+		triangles := make([]Triangle, 0, numTriangles)
+		for i := 0; i < numTriangles; i++ {
+			idx := i * 3
+			a := interp.points[interp.tri.Triangles[idx]]
+			b := interp.points[interp.tri.Triangles[idx+1]]
+			c := interp.points[interp.tri.Triangles[idx+2]]
+			triangles = append(triangles, Triangle{
+				Ax: a.X, Ay: a.Y,
+				Bx: b.X, By: b.Y,
+				Cx: c.X, Cy: c.Y,
+			})
+		}
+		return triangles
+	}
+
+	return []Triangle{}
+}
+
 func (a *App) Log(message string) {
 	LogInfo("[Frontend] %s", message)
 }

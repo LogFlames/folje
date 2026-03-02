@@ -22,6 +22,7 @@
         MousePos,
         Point,
         SACNConfig,
+        Triangle,
     } from "./types";
     import {
         calcPan,
@@ -62,6 +63,9 @@
 
     let showMousePosition = false;
     let showCalibrationPoints = false;
+    let showTriangles = false;
+    let triangles = writable<Triangle[]>([]);
+    let activeTriangleIndex: number | null = null;
     let showFixtureConfiguration = false;
     let showSACNConfiguration = false;
     let showSettingsMenu = false;
@@ -81,7 +85,7 @@
             fixtures,
             get(calibrationPoints),
         );
-        App.SetFixtures(goFixtures);
+        App.SetFixtures(goFixtures).then(fetchTriangles);
     });
 
     calibrationPoints.subscribe((calibrationPoints) => {
@@ -90,7 +94,7 @@
 
         let goCalibrationPoints: { [id: string]: main.CalibrationPoint } =
             convertCalibrationPointsToGo(calibrationPoints);
-        App.SetCalibrationPoints(goCalibrationPoints);
+        App.SetCalibrationPoints(goCalibrationPoints).then(fetchTriangles);
     });
 
     onMount(() => {
@@ -232,14 +236,6 @@
         });
     });
 
-    const toggleShowMousePosition = () => {
-        showMousePosition = !showMousePosition;
-    };
-
-    const toggleShowCalibrationPoints = () => {
-        showCalibrationPoints = !showCalibrationPoints;
-    };
-
     const toggleShowFixtureConfiguration = () => {
         showFixtureConfiguration = !showFixtureConfiguration;
     };
@@ -251,6 +247,33 @@
     const toggleShowSettingsMenu = () => {
         showSettingsMenu = !showSettingsMenu;
     };
+
+    async function fetchTriangles() {
+        try {
+            activeTriangleIndex = null;
+            const result = await App.GetTriangles();
+            triangles.set(
+                (result || []).map((t: any) => ({
+                    ax: t.Ax, ay: t.Ay,
+                    bx: t.Bx, by: t.By,
+                    cx: t.Cx, cy: t.Cy,
+                }))
+            );
+        } catch (err) {
+            App.Log(`Failed to fetch triangles: ${err}`);
+        }
+    }
+
+    function pointInTriangle(px: number, py: number, t: Triangle): boolean {
+        const d1 = (px - t.bx) * (t.ay - t.by) - (t.ax - t.bx) * (py - t.by);
+        const d2 = (px - t.cx) * (t.by - t.cy) - (t.bx - t.cx) * (py - t.cy);
+        const d3 = (px - t.ax) * (t.cy - t.ay) - (t.cx - t.ax) * (py - t.ay);
+
+        const hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+        const hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+        return !(hasNeg && hasPos);
+    }
 
     function getNewCalibrationName() {
         calibrationPointCounter.update((value) => {
@@ -682,6 +705,18 @@
 
         mousePos.set({ x, y });
 
+        if (showTriangles) {
+            const tris = get(triangles);
+            let found: number | null = null;
+            for (let i = 0; i < tris.length; i++) {
+                if (pointInTriangle(x, y, tris[i])) {
+                    found = i;
+                    break;
+                }
+            }
+            activeTriangleIndex = found;
+        }
+
         if (
             get(currentlyCalibrating) !== null &&
             !calibrateForOnePointSelectCalibrationPoint
@@ -808,6 +843,32 @@
             on:click={handleClickOnVideo}
         >
             <svg class="video-cover-svg">
+                {#if showTriangles}
+                    {#each $triangles as tri, index}
+                        <line
+                            class="triangle-line {activeTriangleIndex === index ? 'triangle-active' : ''}"
+                            x1="{tri.ax * 100}%"
+                            y1="{tri.ay * 100}%"
+                            x2="{tri.bx * 100}%"
+                            y2="{tri.by * 100}%"
+                        ></line>
+                        <line
+                            class="triangle-line {activeTriangleIndex === index ? 'triangle-active' : ''}"
+                            x1="{tri.bx * 100}%"
+                            y1="{tri.by * 100}%"
+                            x2="{tri.cx * 100}%"
+                            y2="{tri.cy * 100}%"
+                        ></line>
+                        <line
+                            class="triangle-line {activeTriangleIndex === index ? 'triangle-active' : ''}"
+                            x1="{tri.cx * 100}%"
+                            y1="{tri.cy * 100}%"
+                            x2="{tri.ax * 100}%"
+                            y2="{tri.ay * 100}%"
+                        ></line>
+                    {/each}
+                {/if}
+
                 {#each $calibrationPointOutline as point, index}
                     <line
                         class="outline-line"
@@ -832,6 +893,13 @@
                     ></line>
                 {/if}
             </svg>
+            {#if showTriangles && activeTriangleIndex !== null && activeTriangleIndex < $triangles.length}
+                {@const tri = $triangles[activeTriangleIndex]}
+                <div
+                    class="triangle-fill"
+                    style="clip-path: polygon({tri.ax * 100}% {tri.ay * 100}%, {tri.bx * 100}% {tri.by * 100}%, {tri.cx * 100}% {tri.cy * 100}%);"
+                ></div>
+            {/if}
             {#if showCalibrationPoints}
                 {#each Object.values($calibrationPoints) as calibrationPoint (calibrationPoint.id)}
                     <div
@@ -966,16 +1034,18 @@
             Remove Calibration Point
         </button>
         <div class="settings-separator"></div>
-        <button on:click={toggleShowMousePosition}
-            >{showMousePosition
-                ? "Hide Mouse Position"
-                : "Show Mouse Position"}</button
-        >
-        <button on:click={toggleShowCalibrationPoints}>
-            {showCalibrationPoints
-                ? "Hide Calibration Points"
-                : "Show Calibration Points"}
-        </button>
+        <label class="checkbox-label">
+            <input type="checkbox" bind:checked={showMousePosition} />
+            Show Mouse Position
+        </label>
+        <label class="checkbox-label">
+            <input type="checkbox" bind:checked={showCalibrationPoints} />
+            Show Calibration Points
+        </label>
+        <label class="checkbox-label">
+            <input type="checkbox" bind:checked={showTriangles} />
+            Draw Triangles
+        </label>
     </div>
     <Info
         bind:addingCalibrationPoint
@@ -1136,6 +1206,36 @@
         border-color: var(--accent-red);
         border-radius: 50%;
         box-sizing: border-box;
+    }
+
+    .triangle-line {
+        stroke: var(--accent-orange);
+        stroke-width: 2px;
+        stroke-opacity: 0.7;
+    }
+
+    .triangle-line.triangle-active {
+        stroke: var(--accent-blue);
+        stroke-width: 3px;
+        stroke-opacity: 1;
+    }
+
+    .triangle-fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--accent-blue);
+        opacity: 0.15;
+        pointer-events: none;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
     }
 
     .settings-separator {

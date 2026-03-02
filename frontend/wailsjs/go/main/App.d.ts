@@ -10,6 +10,8 @@ export function GetLastSessionInfo():Promise<main.LastSessionInfo>;
 
 export function GetSACNConfig():Promise<main.SACNConfig>;
 
+export function GetTriangles():Promise<Array<main.Triangle>>;
+
 export function LoadFile():Promise<string>;
 
 export function LoadFileFromPath(arg1:string):Promise<string>;
@@ -30,4 +32,4 @@ export function SetPanTiltForFixture(arg1:string,arg2:number,arg3:number):Promis
 
 export function SetSACNConfig(arg1:main.SACNConfig):Promise<void>;
 
-export function TypeExporter(arg1:main.CalibrationPoint,arg2:main.CalibratedCalibrationPoint,arg3:main.Fixture,arg4:main.SACNConfig,arg5:main.DMXData,arg6:main.Point):Promise<void>;
+export function TypeExporter(arg1:main.CalibrationPoint,arg2:main.CalibratedCalibrationPoint,arg3:main.Fixture,arg4:main.SACNConfig,arg5:main.DMXData,arg6:main.Point,arg7:main.Triangle):Promise<void>;
