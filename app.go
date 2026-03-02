@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
+	goruntime "runtime"
 	"sync"
 
 	"github.com/fogleman/delaunay"
@@ -293,6 +295,27 @@ func (a *App) GetTriangles() []Triangle {
 	}
 
 	return []Triangle{}
+}
+
+func (a *App) OpenLogFile() error {
+	exePath, err := os.Executable()
+	if err != nil {
+		exePath = "."
+	} else {
+		exePath = filepath.Dir(exePath)
+	}
+	logPath := filepath.Join(exePath, "folje_log.txt")
+
+	var cmd *exec.Cmd
+	switch goruntime.GOOS {
+	case "darwin":
+		cmd = exec.Command("open", logPath)
+	case "windows":
+		cmd = exec.Command("cmd", "/c", "start", "", logPath)
+	default:
+		cmd = exec.Command("xdg-open", logPath)
+	}
+	return cmd.Start()
 }
 
 func (a *App) Log(message string) {

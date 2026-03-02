@@ -18,6 +18,8 @@ export function LoadFileFromPath(arg1:string):Promise<string>;
 
 export function Log(arg1:string):Promise<void>;
 
+export function OpenLogFile():Promise<void>;
+
 export function SaveFile(arg1:string):Promise<boolean>;
 
 export function SetCalibrationPoints(arg1:Record<string, main.CalibrationPoint>):Promise<void>;

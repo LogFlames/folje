@@ -34,6 +34,10 @@ export function Log(arg1) {
   return window['go']['main']['App']['Log'](arg1);
 }
 
+export function OpenLogFile() {
+  return window['go']['main']['App']['OpenLogFile']();
+}
+
 export function SaveFile(arg1) {
   return window['go']['main']['App']['SaveFile'](arg1);
 }

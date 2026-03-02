@@ -1050,6 +1050,9 @@
                     <input type="checkbox" bind:checked={showTriangles} />
                     Draw Triangles
                 </label>
+                <button on:click={() => App.OpenLogFile()}>
+                    Open Log
+                </button>
             </div>
         </details>
     </div>
