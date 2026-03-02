@@ -69,6 +69,7 @@
     let showFixtureConfiguration = false;
     let showSACNConfiguration = false;
     let showSettingsMenu = false;
+    let showDebugSection = false;
     let hideAllSettings = false;
 
     let fixturesToCalibrate = writable<string[]>([]);
@@ -1033,19 +1034,24 @@
         <button on:click={removeCalibrationPoint}>
             Remove Calibration Point
         </button>
-        <div class="settings-separator"></div>
-        <label class="checkbox-label">
-            <input type="checkbox" bind:checked={showMousePosition} />
-            Show Mouse Position
-        </label>
         <label class="checkbox-label">
             <input type="checkbox" bind:checked={showCalibrationPoints} />
             Show Calibration Points
         </label>
-        <label class="checkbox-label">
-            <input type="checkbox" bind:checked={showTriangles} />
-            Draw Triangles
-        </label>
+        <div class="settings-separator"></div>
+        <details class="debug-details" bind:open={showDebugSection}>
+            <summary>Debug</summary>
+            <div class="debug-section">
+                <label class="checkbox-label">
+                    <input type="checkbox" bind:checked={showMousePosition} />
+                    Show Mouse Position
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" bind:checked={showTriangles} />
+                    Draw Triangles
+                </label>
+            </div>
+        </details>
     </div>
     <Info
         bind:addingCalibrationPoint
@@ -1236,6 +1242,68 @@
         align-items: center;
         gap: 8px;
         cursor: pointer;
+        padding: 8px 12px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-primary);
+        background-color: var(--btn-default-bg);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .checkbox-label:hover {
+        background-color: var(--btn-default-hover);
+        border-color: #484f58;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+    }
+
+    .debug-details {
+        width: 100%;
+    }
+
+    .debug-details summary {
+        padding: 8px 12px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-primary);
+        background-color: var(--btn-default-bg);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        cursor: pointer;
+        list-style: none;
+        transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .debug-details summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .debug-details summary::before {
+        content: "▶";
+        display: inline-block;
+        margin-right: 8px;
+        font-size: 10px;
+        transition: transform 0.15s ease;
+    }
+
+    .debug-details[open] summary::before {
+        transform: rotate(90deg);
+    }
+
+    .debug-details summary:hover {
+        background-color: var(--btn-default-hover);
+        border-color: #484f58;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+    }
+
+    .debug-section {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
     }
 
     .settings-separator {
