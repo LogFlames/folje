@@ -981,55 +981,7 @@
         <button on:click={toggleShowFixtureConfiguration}>
             Fixture Config
         </button>
-        {#if showFixtureConfiguration}
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <div class="overlay" on:click={toggleShowFixtureConfiguration}>
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <div on:click|stopPropagation>
-                    <FixtureConfiguration
-                        bind:fixtures
-                        bind:calibrationPoints
-                        on:calibrate_all_points={(event) => {
-                            calibrateFixtureForAllPoints(
-                                event.detail.fixture_id,
-                            );
-                        }}
-                        on:calibrate_one_point={(event) => {
-                            calibrateFixtureForOnePoint(
-                                event.detail.fixture_id,
-                            );
-                        }}
-                        on:calibrate_missing_points={(event) => {
-                            calibrateFixtureForMissingPoints(
-                                event.detail.fixture_id,
-                                event.detail.calibration_points_missing,
-                            );
-                        }}
-                    />
-                </div>
-            </div>
-        {/if}
         <button on:click={toggleShowSACNConfiguration}> sACN Config </button>
-        {#if showSACNConfiguration}
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <div
-                class="overlay"
-                on:click={() => {
-                    if (sacnConfigDirty) {
-                        App.AlertDialog(
-                            "Unsaved changes",
-                            "You have unsaved changes. Either apply or cancel them before closing this window.",
-                        );
-                    } else {
-                        toggleShowSACNConfiguration();
-                    }
-                }}
-            >
-                <div on:click|stopPropagation>
-                    <SACNConfiguration bind:sacnConfig bind:sacnConfigDirty />
-                </div>
-            </div>
-        {/if}
         <button on:click={addCalibrationPoint}> Add Calibration Point </button>
         <button on:click={removeCalibrationPoint}>
             Remove Calibration Point
@@ -1055,6 +1007,54 @@
             </div>
         </details>
     </div>
+    {#if showFixtureConfiguration}
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <div class="overlay" on:click={toggleShowFixtureConfiguration}>
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <div on:click|stopPropagation>
+                <FixtureConfiguration
+                    bind:fixtures
+                    bind:calibrationPoints
+                    on:calibrate_all_points={(event) => {
+                        calibrateFixtureForAllPoints(
+                            event.detail.fixture_id,
+                        );
+                    }}
+                    on:calibrate_one_point={(event) => {
+                        calibrateFixtureForOnePoint(
+                            event.detail.fixture_id,
+                        );
+                    }}
+                    on:calibrate_missing_points={(event) => {
+                        calibrateFixtureForMissingPoints(
+                            event.detail.fixture_id,
+                            event.detail.calibration_points_missing,
+                        );
+                    }}
+                />
+            </div>
+        </div>
+    {/if}
+    {#if showSACNConfiguration}
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <div
+            class="overlay"
+            on:click={() => {
+                if (sacnConfigDirty) {
+                    App.AlertDialog(
+                        "Unsaved changes",
+                        "You have unsaved changes. Either apply or cancel them before closing this window.",
+                    );
+                } else {
+                    toggleShowSACNConfiguration();
+                }
+            }}
+        >
+            <div on:click|stopPropagation>
+                <SACNConfiguration bind:sacnConfig bind:sacnConfigDirty />
+            </div>
+        </div>
+    {/if}
     <Info
         bind:addingCalibrationPoint
         bind:allFixturesCalibrated
