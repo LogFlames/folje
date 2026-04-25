@@ -66,6 +66,25 @@
     let showTriangles = false;
     let triangles = writable<Triangle[]>([]);
     let activeTriangleIndex: number | null = null;
+    let showFixturePanTilt = false;
+    let fixturePanTilt = writable<Record<string, main.PanTilt>>({});
+    let fixturePanTiltInterval: ReturnType<typeof setInterval> | null = null;
+
+    $: {
+        if (showFixturePanTilt && fixturePanTiltInterval === null) {
+            fixturePanTiltInterval = setInterval(async () => {
+                try {
+                    const result = await App.GetFixturePanTilt();
+                    fixturePanTilt.set(result);
+                } catch (err) {
+                    App.Log(`Failed to fetch fixture P/T: ${err}`);
+                }
+            }, 100);
+        } else if (!showFixturePanTilt && fixturePanTiltInterval !== null) {
+            clearInterval(fixturePanTiltInterval);
+            fixturePanTiltInterval = null;
+        }
+    }
     let showFixtureConfiguration = false;
     let showSACNConfiguration = false;
     let showSettingsMenu = false;
@@ -947,6 +966,27 @@
             {/if}
         </div>
     </div>
+    {#if showFixturePanTilt}
+        <div class="fixture-pan-tilt-panel">
+            <div class="fixture-pan-tilt-title">Fixture Pan/Tilt</div>
+            {#each Object.entries($fixtures) as [id, fixture] (id)}
+                {@const pt = $fixturePanTilt[id]}
+                <div class="fixture-pan-tilt-row">
+                    <span class="fixture-pan-tilt-name">{fixture.name || id}</span>
+                    <span class="fixture-pan-tilt-values">
+                        {#if pt}
+                            P: {pt.Pan} &nbsp; T: {pt.Tilt}
+                        {:else}
+                            —
+                        {/if}
+                    </span>
+                </div>
+            {/each}
+            {#if Object.keys($fixtures).length === 0}
+                <div class="fixture-pan-tilt-row">No fixtures</div>
+            {/if}
+        </div>
+    {/if}
     <button
         class="settings-button {hideAllSettings ? 'hidden' : ''}"
         on:click={toggleShowSettingsMenu}
@@ -1000,6 +1040,10 @@
                 <label class="checkbox-label">
                     <input type="checkbox" bind:checked={showTriangles} />
                     Draw Triangles
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" bind:checked={showFixturePanTilt} />
+                    Show Fixture Pan/Tilt
                 </label>
                 <button on:click={() => App.OpenLogFile()}>
                     Open Log
@@ -1106,6 +1150,50 @@
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-lg);
         z-index: 3;
+    }
+
+    .fixture-pan-tilt-panel {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        min-width: 180px;
+        background: var(--bg-glass);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        padding: 10px 12px;
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        z-index: 3;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12px;
+        color: var(--text-primary);
+        pointer-events: none;
+    }
+
+    .fixture-pan-tilt-title {
+        font-weight: 600;
+        margin-bottom: 6px;
+        opacity: 0.8;
+    }
+
+    .fixture-pan-tilt-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 2px 0;
+    }
+
+    .fixture-pan-tilt-name {
+        opacity: 0.85;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 140px;
+    }
+
+    .fixture-pan-tilt-values {
+        white-space: nowrap;
     }
 
     .settings-button {

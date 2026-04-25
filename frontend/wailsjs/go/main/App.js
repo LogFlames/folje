@@ -10,6 +10,10 @@ export function ConfirmDialog(arg1, arg2) {
   return window['go']['main']['App']['ConfirmDialog'](arg1, arg2);
 }
 
+export function GetFixturePanTilt() {
+  return window['go']['main']['App']['GetFixturePanTilt']();
+}
+
 export function GetLastSessionInfo() {
   return window['go']['main']['App']['GetLastSessionInfo']();
 }
@@ -66,6 +70,6 @@ export function SetSACNConfig(arg1) {
   return window['go']['main']['App']['SetSACNConfig'](arg1);
 }
 
-export function TypeExporter(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
-  return window['go']['main']['App']['TypeExporter'](arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+export function TypeExporter(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) {
+  return window['go']['main']['App']['TypeExporter'](arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
 }

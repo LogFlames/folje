@@ -30,6 +30,7 @@ type App struct {
 	sacnConfig          *SACNConfig
 	sacnWorkerWG        sync.WaitGroup
 	linearInterpolators map[string]*Linear2DPanTiltInterpolator
+	lastPanTilt         map[string]PanTilt
 }
 
 func NewApp() *App {
@@ -54,6 +55,7 @@ func (a *App) startup(ctx context.Context) {
 	a.sacnUpdatedConfig = make(chan bool)
 
 	a.linearInterpolators = make(map[string]*Linear2DPanTiltInterpolator)
+	a.lastPanTilt = make(map[string]PanTilt)
 
 	a.findPossibleIPAddresses()
 
@@ -222,6 +224,20 @@ func (a *App) setPanTiltForFixture(fixtureId string, pan int, tilt int) {
 	}
 
 	a.universeDMXData[fixture.Universe] = data
+
+	a.lastPanTilt[fixtureId] = PanTilt{Pan: pan, Tilt: tilt}
+}
+
+func (a *App) GetFixturePanTilt() map[string]PanTilt {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	result := make(map[string]PanTilt, len(a.fixtures))
+	for id := range a.fixtures {
+		if pt, ok := a.lastPanTilt[id]; ok {
+			result[id] = pt
+		}
+	}
+	return result
 }
 
 type LastSessionInfo struct {

@@ -6,6 +6,8 @@ export function AlertDialog(arg1:string,arg2:string):Promise<void>;
 
 export function ConfirmDialog(arg1:string,arg2:string):Promise<string>;
 
+export function GetFixturePanTilt():Promise<Record<string, main.PanTilt>>;
+
 export function GetLastSessionInfo():Promise<main.LastSessionInfo>;
 
 export function GetSACNConfig():Promise<main.SACNConfig>;
@@ -34,4 +36,4 @@ export function SetPanTiltForFixture(arg1:string,arg2:number,arg3:number):Promis
 
 export function SetSACNConfig(arg1:main.SACNConfig):Promise<void>;
 
-export function TypeExporter(arg1:main.CalibrationPoint,arg2:main.CalibratedCalibrationPoint,arg3:main.Fixture,arg4:main.SACNConfig,arg5:main.DMXData,arg6:main.Point,arg7:main.Triangle):Promise<void>;
+export function TypeExporter(arg1:main.CalibrationPoint,arg2:main.CalibratedCalibrationPoint,arg3:main.Fixture,arg4:main.SACNConfig,arg5:main.DMXData,arg6:main.Point,arg7:main.Triangle,arg8:main.PanTilt):Promise<void>;

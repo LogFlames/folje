@@ -102,6 +102,20 @@ export namespace main {
 	        this.videoSourceLabel = source["videoSourceLabel"];
 	    }
 	}
+	export class PanTilt {
+	    Pan: number;
+	    Tilt: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new PanTilt(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Pan = source["Pan"];
+	        this.Tilt = source["Tilt"];
+	    }
+	}
 	export class Point {
 	    X: number;
 	    Y: number;
