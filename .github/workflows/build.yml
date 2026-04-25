@@ -48,7 +48,7 @@ jobs:
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
         shell: bash
 
-      - name: Build Följe
+      - name: Build Folje
         run: wails build
         shell: bash
 
@@ -56,7 +56,7 @@ jobs:
         if: matrix.build.os == 'macos-latest'
         run: |
           cd ./build/bin
-          zip -r -X ./Följe.app.zip ./Följe.app
+          zip -r -X ./Folje.app.zip ./Folje.app
           cd ../..
         shell: bash
 
@@ -66,8 +66,8 @@ jobs:
         with:
           name: build-${{ matrix.build.os }}
           path: |
-            ./build/bin/Följe.exe
-            ./build/bin/Följe.app.zip
+            ./build/bin/Folje.exe
+            ./build/bin/Folje.app.zip
 
   release:
     needs: build
@@ -112,5 +112,5 @@ jobs:
             --title "Följe ${{ steps.commit_info.outputs.date }} (${{ steps.commit_info.outputs.short_sha }})" \
             --notes-file release_notes.md \
             --repo LogFlames/folje \
-            ./windows-build-output/Följe.exe ./macos-build-output/Följe.app.zip
+            ./windows-build-output/Folje.exe ./macos-build-output/Folje.app.zip
         shell: bash
