@@ -7,18 +7,29 @@ import (
 )
 
 type Linear2DPanTiltInterpolator struct {
-	points       []delaunay.Point
-	tri          *delaunay.Triangulation
-	panValues    []float64
-	tiltValues   []float64
-	fillValue    float64
-	lastTriangle int // cached triangle index for walk starting point
+	points     []delaunay.Point
+	tri        *delaunay.Triangulation
+	panValues  []float64
+	tiltValues []float64
+	fillValue  float64
 }
 
 // cross returns the cross product of vectors (b-a) and (p-a).
-// Positive means p is to the left of edge a->b (inside for CCW triangles).
 func cross(a, b, p delaunay.Point) float64 {
 	return (b.X-a.X)*(p.Y-a.Y) - (b.Y-a.Y)*(p.X-a.X)
+}
+
+// pointInTriangle returns true if p lies inside or on the boundary of triangle abc.
+// Orientation-agnostic: accepts the triangle whether vertices are CW or CCW.
+func pointInTriangle(a, b, c, p delaunay.Point) bool {
+	d1 := cross(a, b, p)
+	d2 := cross(b, c, p)
+	d3 := cross(c, a, p)
+
+	hasNeg := d1 < 0 || d2 < 0 || d3 < 0
+	hasPos := d1 > 0 || d2 > 0 || d3 > 0
+
+	return !(hasNeg && hasPos)
 }
 
 func (interp *Linear2DPanTiltInterpolator) LocatePoint(p delaunay.Point) (int, error) {
@@ -27,53 +38,13 @@ func (interp *Linear2DPanTiltInterpolator) LocatePoint(p delaunay.Point) (int, e
 		return -1, errors.New("no triangles in the triangulation")
 	}
 
-	// Start the walk from the last found triangle for temporal coherence.
-	start := interp.lastTriangle * 3
-	if start < 0 || start+2 >= numEdges {
-		start = 0
-	}
-
-	e := start
-	maxIter := numEdges / 3
-	for range maxIter {
-		e0 := e
-		e1 := e + 1
-		e2 := e + 2
-
-		a := interp.points[interp.tri.Triangles[e0]]
-		b := interp.points[interp.tri.Triangles[e1]]
-		c := interp.points[interp.tri.Triangles[e2]]
-
-		// Check each edge: if p is to the right (outside), cross to the adjacent triangle.
-		if cross(a, b, p) < 0 {
-			opp := interp.tri.Halfedges[e0]
-			if opp == -1 {
-				return -1, errors.New("point is outside the convex hull")
-			}
-			e = opp - opp%3
-			continue
+	for t := 0; t < numEdges; t += 3 {
+		a := interp.points[interp.tri.Triangles[t]]
+		b := interp.points[interp.tri.Triangles[t+1]]
+		c := interp.points[interp.tri.Triangles[t+2]]
+		if pointInTriangle(a, b, c, p) {
+			return t / 3, nil
 		}
-		if cross(b, c, p) < 0 {
-			opp := interp.tri.Halfedges[e1]
-			if opp == -1 {
-				return -1, errors.New("point is outside the convex hull")
-			}
-			e = opp - opp%3
-			continue
-		}
-		if cross(c, a, p) < 0 {
-			opp := interp.tri.Halfedges[e2]
-			if opp == -1 {
-				return -1, errors.New("point is outside the convex hull")
-			}
-			e = opp - opp%3
-			continue
-		}
-
-		// Point is inside (or on the boundary of) this triangle.
-		tri := e / 3
-		interp.lastTriangle = tri
-		return tri, nil
 	}
 
 	return -1, errors.New("point is outside the convex hull")
