@@ -6,11 +6,12 @@ toolchain go1.23.3
 
 require (
 	github.com/fogleman/delaunay v0.0.0-20180910191513-63f09b4c883d
-	github.com/wailsapp/wails/v2 v2.11.0
+	github.com/wailsapp/wails/v2 v2.12.0
 	gitlab.com/patopest/go-sacn v0.2.1
 )
 
 require (
+	git.sr.ht/~jackmordaunt/go-toast/v2 v2.0.3 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
