@@ -166,6 +166,7 @@ func (a *App) calculateLinearInterpolator() {
 		}
 
 		a.linearInterpolators[fixture.Id] = interp
+		LogInfo("Built interpolator for fixture %s (%s) with %d calibration point(s)", fixture.Id, fixture.Name, len(points))
 	}
 }
 
