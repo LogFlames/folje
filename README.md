@@ -17,15 +17,19 @@ It started as a python-script written in 6h for Kårspexet 23/24 by Elias Lundel
 - [TODOs and known bugs](#todos-and-known-bugs)
   - [TODOs](#todos)
   - [Known Bugs](#known-bugs)
+- [Keyboard shortcuts](#keyboard-shortcuts)
+- [Example save files](#example-save-files)
 - [Build](#build)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
 
 ## Installation
 
-There exists automatic builds for Windows and MacOS. Download the [latest release](https://github.com/LogFlames/folje/releases/tag/latest). This is automatically built from the latest in the main branch and might be broken. Once the project has matured and is no longer in rapid development I will setup stable releases.
+Every commit to `main` is automatically built for Windows and MacOS (arm). Installing the [latest release](https://github.com/LogFlames/folje/releases) is recommended.
 
 The Mac app is not signed, so you will need to disable Gatekeeper to run the app or [build](#build) it yourself.
 ```bash
-xattr -d com.apple.quarantine Följe.app
+xattr -d com.apple.quarantine Folje.app
 ```
 
 ## Usage
@@ -75,6 +79,18 @@ Theoretically the settings could be more fine-grained (multicast/destination per
 
 When tracking someone you might want to move the mouse without having the fixtures follow (to change settings or interact with other programs). This can be done by clicking anywhere on the video. A red dot with a red ring around it will appear at the locked position. Clicking anywhere on the video will unlock it and it will resume following the mouse.
 
+## Keyboard shortcuts
+
+| Shortcut | Action |
+| --- | --- |
+| `ESC` | Abort the current operation (calibration, point placement, etc). |
+| `SHIFT` (hold) | While calibrating a fixture, switch from absolute to fine-grained relative pan/tilt control. |
+| Click on video | Lock / unlock the current tracking position so the mouse can move without the fixtures following. |
+
+## Example save files
+
+The [`example_savefiles/`](./example_savefiles) directory contains save files you can load to see a working configuration with fixtures and calibration points already set up.
+
 ## Build
 
 This is build using [Go](https://go.dev/), [Wails](https://wails.io/) and [Svelte](https://svelte.dev/). To build the project, install [go](https://go.dev/doc/install), [wails](https://wails.io/docs/gettingstarted/installation), [node](https://nodejs.org/en/download) and run `wails build` from the root of the project:
@@ -82,3 +98,20 @@ This is build using [Go](https://go.dev/), [Wails](https://wails.io/) and [Svelt
 wails build
 ```
 It will automatically install all dependencies for both the backand end frontend and build the project. The output will be in the `build/bin` folder.
+
+If you run into platform-specific build issues, run `wails doctor` to verify your environment. On macOS you need the Xcode Command Line Tools, on Windows the WebView2 runtime is required (it is preinstalled on recent Windows versions).
+
+## Acknowledgements
+
+Följe builds on top of several open source projects:
+
+- [Wails](https://github.com/wailsapp/wails) – Go + web frontend desktop app framework.
+- [Svelte](https://svelte.dev/) – frontend framework.
+- [go-sacn](https://gitlab.com/patopest/go-sacn) – sACN (E1.31) implementation in Go.
+- [delaunay](https://github.com/fogleman/delaunay) – Delaunay triangulation used for interpolating between calibration points.
+
+The original Python version was written for Kårspexet 23/24.
+
+## License
+
+Released under the license in [`LICENSE`](./LICENSE).
