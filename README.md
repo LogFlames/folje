@@ -25,7 +25,7 @@ It started as a python-script written in 6h for Kårspexet 23/24 by Elias Lundel
 
 ## Installation
 
-Every commit to `main` is automatically built for Windows and MacOS (arm). Installing the [latest release](https://github.com/LogFlames/folje/releases) is recommended.
+Every commit to `main` is automatically built for Windows and MacOS. Installing the [latest release](https://github.com/LogFlames/folje/releases) is recommended.
 
 The Mac app is not signed, so you will need to disable Gatekeeper to run the app or [build](#build) it yourself.
 ```bash
